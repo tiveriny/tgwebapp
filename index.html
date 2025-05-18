@@ -647,7 +647,7 @@
             const name = product.name || 'Без названия';
             const description = product.description || 'Нет описания';
             const price = product.price || 0;
-            const imageUrl = product.image_url || 'https://placehold.co/400x300/e2e8f0/1e293b?text=Нет+изображения';
+            const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
             const category = product.category || 'Без категории';
             
             console.log('Formatted product data:', {
@@ -667,7 +667,7 @@
                     <span>Назад</span>
                 </button>
                 <div class="product-details">
-                    <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://placehold.co/400x300/e2e8f0/1e293b?text=Ошибка+загрузки'">
+                    <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
                     <h2>${name}</h2>
                     <p>${description}</p>
                     <div class="price">💰 ${price} руб.</div>
@@ -724,7 +724,7 @@
                     const name = product.name || 'Без названия';
                     const description = product.description || 'Нет описания';
                     const price = product.price || 0;
-                    const imageUrl = product.image_url || 'https://placehold.co/200x200/e2e8f0/1e293b?text=Нет+изображения';
+                    const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
                     
                     console.log('Formatted product card data:', {
                         name,
@@ -735,7 +735,7 @@
                     
                     card.innerHTML = `
                         <div class="product-image">
-                            <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://placehold.co/200x200/e2e8f0/1e293b?text=Ошибка+загрузки'">
+                            <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
                         </div>
                         <div class="product-info">
                             <h3 class="product-name">${name}</h3>
@@ -849,11 +849,11 @@
                     const name = product.name || 'Без названия';
                     const description = product.description || 'Нет описания';
                     const price = product.price || 0;
-                    const imageUrl = product.image_url || 'https://placehold.co/200x200/e2e8f0/1e293b?text=Нет+изображения';
+                    const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
                     
                     card.innerHTML = `
                         <div class="product-image">
-                            <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://placehold.co/200x200/e2e8f0/1e293b?text=Ошибка+загрузки'">
+                            <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
                         </div>
                         <div class="product-info">
                             <h3 class="product-name">${name}</h3>
