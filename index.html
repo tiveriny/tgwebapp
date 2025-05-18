@@ -343,86 +343,112 @@
             color: var(--tg-theme-button-color);
             margin-bottom: 20px;
         }
+        .main-content {
+            display: block;
+        }
+        .product-details-view {
+            display: none;
+            padding: 20px;
+        }
+        .product-details-view.active {
+            display: block;
+        }
+        .product-details img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .product-details h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .product-details p {
+            margin-bottom: 15px;
+            color: var(--tg-theme-hint-color);
+        }
+        .product-details .price {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="version">v0.11</div>
+    <div class="version">v0.12</div>
     <div class="container">
-        <div class="header">
-            <h1>Маркетплейс Либерти</h1>
-        </div>
-
-        <div class="tabs">
-            <div class="tab active" data-tab="products">Товары</div>
-            <div class="tab" data-tab="profile">Профиль</div>
-        </div>
-
-        <div class="tab-content active" id="products">
-            <button class="button add-product-button" onclick="showAddProductForm()">Добавить товар</button>
-            <div class="products-grid" id="productGrid">
-                <!-- Товары будут добавлены через JavaScript -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Маркетплейс Либерти</h1>
             </div>
             
-            <div id="addProductForm" class="add-product-form">
-                <div class="form-group">
-                    <label>Название товара</label>
-                    <input type="text" id="productName" required>
+            <div class="tabs">
+                <div class="tab active" data-tab="products">Товары</div>
+                <div class="tab" data-tab="profile">Профиль</div>
+            </div>
+
+            <div class="tab-content active" id="products">
+                <button class="button add-product-button" onclick="showAddProductForm()">Добавить товар</button>
+                <div class="product-grid" id="productGrid"></div>
+                
+                <div id="addProductForm" class="add-product-form">
+                    <div class="form-group">
+                        <label>Название товара</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="productDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Цена (руб.)</label>
+                        <input type="number" id="productPrice" required>
+                    </div>
+                    <div class="form-group">
+                        <label>URL изображения</label>
+                        <input type="url" id="productImageUrl" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Местоположение</label>
+                        <div class="map-container" id="map"></div>
+                        <input type="hidden" id="latitude" value="62.0355">
+                        <input type="hidden" id="longitude" value="129.6755">
+                    </div>
+                    <button class="button" onclick="addProduct()">Сохранить товар</button>
                 </div>
-                <div class="form-group">
-                    <label>Описание</label>
-                    <textarea id="productDescription" rows="3"></textarea>
+            </div>
+
+            <div class="tab-content" id="profile">
+                <div class="card">
+                    <div class="profile">
+                        <div class="profile-avatar" id="userAvatar">
+                            <!-- Аватар будет добавлен через JavaScript -->
+                        </div>
+                        <div class="profile-info">
+                            <div class="info-item">
+                                <label>Имя:</label>
+                                <span id="userName">Загрузка...</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Username:</label>
+                                <span id="userUsername">Загрузка...</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Цена (руб.)</label>
-                    <input type="number" id="productPrice" required>
-                </div>
-                <div class="form-group">
-                    <label>URL изображения</label>
-                    <input type="url" id="productImageUrl" required>
-                </div>
-                <div class="form-group">
-                    <label>Местоположение</label>
-                    <div class="map-container" id="map"></div>
-                    <input type="hidden" id="latitude" value="62.0355">
-                    <input type="hidden" id="longitude" value="129.6755">
-                </div>
-                <button class="button" onclick="addProduct()">Сохранить товар</button>
+                <div class="status" id="status"></div>
             </div>
         </div>
 
-        <div class="tab-content" id="profile">
-            <div class="card">
-                <div class="profile">
-                    <div class="profile-avatar" id="userAvatar">
-                        <!-- Аватар будет добавлен через JavaScript -->
-                    </div>
-                    <div class="profile-info">
-                        <div class="info-item">
-                            <label>Имя:</label>
-                            <span id="userName">Загрузка...</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Username:</label>
-                            <span id="userUsername">Загрузка...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="status" id="status"></div>
-        </div>
-    </div>
-
-    <div id="productDetails" class="product-details">
-        <div class="product-details-header">
+        <div class="product-details-view" id="productDetailsView">
             <button class="back-button" onclick="hideProductDetails()">← Назад</button>
-        </div>
-        <img id="detailsImage" class="product-details-image" src="" alt="">
-        <div class="product-details-info">
-            <h2 id="detailsName" class="product-details-name"></h2>
-            <p id="detailsDescription" class="product-details-description"></p>
-            <div id="detailsPrice" class="product-details-price"></div>
-            <div class="product-details-location">
-                <h3>Местоположение</h3>
+            <div class="product-details">
+                <img id="detailsImage" src="" alt="">
+                <h2 id="detailsName"></h2>
+                <p id="detailsDescription"></p>
+                <div class="price" id="detailsPrice"></div>
                 <div class="map-container" id="detailsMap"></div>
             </div>
         </div>
@@ -470,6 +496,37 @@
             });
         });
 
+        // Показать детали товара
+        function showProductDetails(id, product) {
+            // Заполняем данные товара
+            document.getElementById('detailsImage').src = product.image_url || 'https://via.placeholder.com/400';
+            document.getElementById('detailsImage').alt = product.name;
+            document.getElementById('detailsName').textContent = product.name;
+            document.getElementById('detailsDescription').textContent = product.description;
+            document.getElementById('detailsPrice').textContent = `💰 ${product.price} руб.`;
+
+            // Скрываем основной контент и показываем детали
+            document.querySelector('.main-content').style.display = 'none';
+            document.getElementById('productDetailsView').classList.add('active');
+
+            // Инициализация карты
+            ymaps.ready(function() {
+                const map = new ymaps.Map('detailsMap', {
+                    center: [product.latitude, product.longitude],
+                    zoom: 15
+                });
+                new ymaps.Placemark([product.latitude, product.longitude], {
+                    balloonContent: product.name
+                }).addTo(map);
+            });
+        }
+
+        // Скрыть детали товара
+        function hideProductDetails() {
+            document.querySelector('.main-content').style.display = 'block';
+            document.getElementById('productDetailsView').classList.remove('active');
+        }
+
         // Загрузка товаров из Firebase
         function loadProducts() {
             const productsRef = database.ref('products');
@@ -493,51 +550,8 @@
             });
         }
 
-        // Показать детали товара
-        function showProductDetails(id, product) {
-            // Сохраняем данные товара в localStorage
-            localStorage.setItem('currentProduct', JSON.stringify({id, ...product}));
-            
-            const container = document.querySelector('.container');
-            container.innerHTML = `
-                <button class="back-button" onclick="goBack()">← Назад</button>
-                <div class="product-details">
-                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
-                    <h2>${product.name}</h2>
-                    <p>${product.description}</p>
-                    <div class="price">💰 ${product.price} руб.</div>
-                    <div class="map-container" id="map"></div>
-                </div>
-            `;
-
-            // Инициализация карты
-            ymaps.ready(function() {
-                const map = new ymaps.Map('map', {
-                    center: [product.latitude, product.longitude],
-                    zoom: 15
-                });
-                new ymaps.Placemark([product.latitude, product.longitude], {
-                    balloonContent: product.name
-                }).addTo(map);
-            });
-        }
-
-        // Проверяем, есть ли сохраненный товар при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedProduct = localStorage.getItem('currentProduct');
-            if (savedProduct) {
-                const product = JSON.parse(savedProduct);
-                showProductDetails(product.id, product);
-            } else {
-                loadProducts();
-            }
-        });
-
-        // Очищаем сохраненный товар при возврате назад
-        function goBack() {
-            localStorage.removeItem('currentProduct');
-            location.reload();
-        }
+        // Загрузка товаров при старте
+        loadProducts();
 
         // Функция для отображения формы добавления товара
         function showAddProductForm() {
@@ -605,11 +619,6 @@
                     buttons: [{type: 'ok'}]
                 });
             });
-        }
-
-        // Функция для скрытия деталей товара
-        function hideProductDetails() {
-            document.getElementById('productDetails').classList.remove('active');
         }
     </script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU"></script>
