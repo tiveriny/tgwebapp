@@ -642,6 +642,13 @@
                 mainContent.style.display = 'none';
             }
             
+            // Проверяем и форматируем данные
+            const name = product.name || 'Без названия';
+            const description = product.description || 'Нет описания';
+            const price = product.price || 0;
+            const imageUrl = product.image_url || 'https://via.placeholder.com/400';
+            const category = product.category || 'Без категории';
+            
             // Создаем и показываем детали товара
             const detailsView = document.createElement('div');
             detailsView.className = 'product-details-view active';
@@ -651,11 +658,11 @@
                     <span>Назад</span>
                 </button>
                 <div class="product-details">
-                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name || 'Товар'}">
-                    <h2>${product.name || 'Без названия'}</h2>
-                    <p>${product.description || 'Нет описания'}</p>
-                    <div class="price">💰 ${product.price || 0} руб.</div>
-                    <div class="category-badge">${product.category || 'Без категории'}</div>
+                    <img src="${imageUrl}" alt="${name}" onerror="this.src='https://via.placeholder.com/400'">
+                    <h2>${name}</h2>
+                    <p>${description}</p>
+                    <div class="price">💰 ${price} руб.</div>
+                    <div class="category-badge">${category}</div>
                 </div>
             `;
             
@@ -700,14 +707,21 @@
                     console.log('Processing product:', id, product);
                     const card = document.createElement('div');
                     card.className = 'product-card';
+                    
+                    // Проверяем и форматируем данные
+                    const name = product.name || 'Без названия';
+                    const description = product.description || 'Нет описания';
+                    const price = product.price || 0;
+                    const imageUrl = product.image_url || 'https://via.placeholder.com/200';
+                    
                     card.innerHTML = `
                         <div class="product-image">
-                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name || 'Товар'}">
+                            <img src="${imageUrl}" alt="${name}" onerror="this.src='https://via.placeholder.com/200'">
                         </div>
                         <div class="product-info">
-                            <h3 class="product-name">${product.name || 'Без названия'}</h3>
-                            <p class="product-description">${product.description || 'Нет описания'}</p>
-                            <p class="product-price">💰 ${product.price || 0} руб.</p>
+                            <h3 class="product-name">${name}</h3>
+                            <p class="product-description">${description}</p>
+                            <p class="product-price">💰 ${price} руб.</p>
                             ${user && user.id === product.user_id ? `
                                 <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
                             ` : ''}
@@ -806,14 +820,21 @@
                     console.log('Processing category product:', id, product);
                     const card = document.createElement('div');
                     card.className = 'product-card';
+                    
+                    // Проверяем и форматируем данные
+                    const name = product.name || 'Без названия';
+                    const description = product.description || 'Нет описания';
+                    const price = product.price || 0;
+                    const imageUrl = product.image_url || 'https://via.placeholder.com/200';
+                    
                     card.innerHTML = `
                         <div class="product-image">
-                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name || 'Товар'}">
+                            <img src="${imageUrl}" alt="${name}" onerror="this.src='https://via.placeholder.com/200'">
                         </div>
                         <div class="product-info">
-                            <h3 class="product-name">${product.name || 'Без названия'}</h3>
-                            <p class="product-description">${product.description || 'Нет описания'}</p>
-                            <p class="product-price">💰 ${product.price || 0} руб.</p>
+                            <h3 class="product-name">${name}</h3>
+                            <p class="product-description">${description}</p>
+                            <p class="product-price">💰 ${price} руб.</p>
                             ${user && user.id === product.user_id ? `
                                 <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
                             ` : ''}
