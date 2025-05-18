@@ -226,10 +226,11 @@
         }
 
         .map-container {
+            width: 100%;
             height: 300px;
-            margin: 15px 0;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
+            margin-top: 10px;
         }
 
         .product-details {
@@ -348,7 +349,6 @@
         }
         .product-details-view {
             display: none;
-            padding: 20px;
             position: fixed;
             top: 0;
             left: 0;
@@ -356,6 +356,7 @@
             bottom: 0;
             background: var(--tg-theme-bg-color);
             z-index: 1000;
+            padding: 20px;
             overflow-y: auto;
         }
         .product-details-view.active {
@@ -364,6 +365,20 @@
         .product-details {
             max-width: 600px;
             margin: 0 auto;
+            padding-bottom: 40px;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1001;
         }
         .product-details img {
             width: 100%;
@@ -518,29 +533,35 @@
 
         // Показать детали товара
         function showProductDetails(id, product) {
-            const detailsView = document.getElementById('productDetailsView');
-            const details = detailsView.querySelector('.product-details');
+            // Скрываем основной контент
+            document.querySelector('.main-content').style.display = 'none';
             
-            // Заполняем данные товара
-            details.innerHTML = `
-                <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
-                <h2>${product.name}</h2>
-                <p>${product.description}</p>
-                <div class="price">💰 ${product.price} руб.</div>
-                <div class="location">
-                    <h3>Местоположение</h3>
-                    <div class="map-container" id="detailsMap"></div>
+            // Создаем и показываем детали товара
+            const detailsView = document.createElement('div');
+            detailsView.className = 'product-details-view active';
+            detailsView.innerHTML = `
+                <button class="back-button" onclick="hideProductDetails()">← Назад</button>
+                <div class="product-details">
+                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
+                    <h2>${product.name}</h2>
+                    <p>${product.description}</p>
+                    <div class="price">💰 ${product.price} руб.</div>
+                    <div class="location">
+                        <h3>Местоположение</h3>
+                        <div class="map-container" id="detailsMap"></div>
+                    </div>
                 </div>
             `;
-
-            // Показываем детали
-            detailsView.classList.add('active');
-
-            // Инициализация карты
+            
+            // Добавляем на страницу
+            document.body.appendChild(detailsView);
+            
+            // Инициализируем карту
             ymaps.ready(function() {
                 const map = new ymaps.Map('detailsMap', {
                     center: [product.latitude || 62.0355, product.longitude || 129.6755],
-                    zoom: 15
+                    zoom: 15,
+                    controls: ['zoomControl']
                 });
                 new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
                     balloonContent: product.name
@@ -550,7 +571,14 @@
 
         // Скрыть детали товара
         function hideProductDetails() {
-            document.getElementById('productDetailsView').classList.remove('active');
+            // Удаляем детали товара
+            const detailsView = document.querySelector('.product-details-view');
+            if (detailsView) {
+                detailsView.remove();
+            }
+            
+            // Показываем основной контент
+            document.querySelector('.main-content').style.display = 'block';
         }
 
         // Загрузка товаров из Firebase
