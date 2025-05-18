@@ -495,9 +495,12 @@
 
         // Показать детали товара
         function showProductDetails(id, product) {
+            // Сохраняем данные товара в localStorage
+            localStorage.setItem('currentProduct', JSON.stringify({id, ...product}));
+            
             const container = document.querySelector('.container');
             container.innerHTML = `
-                <button class="back-button" onclick="location.reload()">← Назад</button>
+                <button class="back-button" onclick="goBack()">← Назад</button>
                 <div class="product-details">
                     <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
                     <h2>${product.name}</h2>
@@ -517,6 +520,23 @@
                     balloonContent: product.name
                 }).addTo(map);
             });
+        }
+
+        // Проверяем, есть ли сохраненный товар при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedProduct = localStorage.getItem('currentProduct');
+            if (savedProduct) {
+                const product = JSON.parse(savedProduct);
+                showProductDetails(product.id, product);
+            } else {
+                loadProducts();
+            }
+        });
+
+        // Очищаем сохраненный товар при возврате назад
+        function goBack() {
+            localStorage.removeItem('currentProduct');
+            location.reload();
         }
 
         // Функция для отображения формы добавления товара
@@ -591,9 +611,6 @@
         function hideProductDetails() {
             document.getElementById('productDetails').classList.remove('active');
         }
-
-        // Загрузка товаров при старте
-        loadProducts();
     </script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU"></script>
 </body>
