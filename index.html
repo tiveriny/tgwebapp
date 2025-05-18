@@ -231,6 +231,12 @@
             border-radius: 12px;
             overflow: hidden;
             margin-top: 10px;
+            position: relative;
+        }
+
+        .ymaps-2-1-79-map {
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .product-details {
@@ -652,9 +658,12 @@
                     zoom: 15,
                     controls: ['zoomControl']
                 });
-                new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
+                
+                const placemark = new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
                     balloonContent: product.name
-                }).addTo(map);
+                });
+                
+                map.geoObjects.add(placemark);
             });
         }
 
@@ -699,10 +708,14 @@
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
                         <p>💰 ${product.price} руб.</p>
+                        ${user && user.id === product.user_id ? `
+                            <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
+                        ` : ''}
                     `;
-                    card.onclick = () => {
-                        console.log('Card clicked:', id, product);
-                        showProductDetails(id, product);
+                    card.onclick = (e) => {
+                        if (!e.target.classList.contains('delete-button')) {
+                            showProductDetails(id, product);
+                        }
                     };
                     productGrid.appendChild(card);
                 });
