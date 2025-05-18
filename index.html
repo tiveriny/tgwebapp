@@ -478,7 +478,11 @@
                 <h2 id="detailsName"></h2>
                 <p id="detailsDescription"></p>
                 <div class="price" id="detailsPrice"></div>
-                <div class="map-container" id="detailsMap"></div>
+                <div class="location">
+                    <h3>Местоположение</h3>
+                    <p>Широта: <span id="detailsLatitude"></span></p>
+                    <p>Долгота: <span id="detailsLongitude"></span></p>
+                </div>
             </div>
         </div>
     </div>
@@ -540,24 +544,16 @@
                     <h2>${product.name}</h2>
                     <p>${product.description}</p>
                     <div class="price">💰 ${product.price} руб.</div>
-                    <div class="map-container" id="detailsMap"></div>
+                    <div class="location">
+                        <h3>Местоположение</h3>
+                        <p>Широта: ${product.latitude || 62.0355}</p>
+                        <p>Долгота: ${product.longitude || 129.6755}</p>
+                    </div>
                 </div>
             `;
             
             // Добавляем на страницу
             document.body.appendChild(detailsView);
-            
-            // Инициализируем карту
-            ymaps.ready(function() {
-                const map = new ymaps.Map('detailsMap', {
-                    center: [product.latitude || 62.0355, product.longitude || 129.6755],
-                    zoom: 15,
-                    controls: ['zoomControl']
-                });
-                new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
-                    balloonContent: product.name
-                }).addTo(map);
-            });
         }
 
         // Скрыть детали товара
