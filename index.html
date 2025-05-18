@@ -316,10 +316,37 @@
             font-size: 12px;
             z-index: 1000;
         }
+        .add-product-button {
+            margin-bottom: 20px;
+        }
+        .product-details {
+            padding: 20px;
+        }
+        .product-details img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .product-details h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .product-details p {
+            margin-bottom: 15px;
+            color: var(--tg-theme-hint-color);
+        }
+        .product-details .price {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="version">v0.1</div>
+    <div class="version">v0.11</div>
     <div class="container">
         <div class="header">
             <h1>Маркетплейс Либерти</h1>
@@ -331,10 +358,10 @@
         </div>
 
         <div class="tab-content active" id="products">
+            <button class="button add-product-button" onclick="showAddProductForm()">Добавить товар</button>
             <div class="products-grid" id="productGrid">
                 <!-- Товары будут добавлены через JavaScript -->
             </div>
-            <button class="button" onclick="showAddProductForm()">Добавить товар</button>
             
             <div id="addProductForm" class="add-product-form">
                 <div class="form-group">
@@ -472,22 +499,24 @@
             container.innerHTML = `
                 <button class="back-button" onclick="location.reload()">← Назад</button>
                 <div class="product-details">
-                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}" style="width: 100%; max-height: 300px; object-fit: cover;">
+                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
                     <h2>${product.name}</h2>
                     <p>${product.description}</p>
-                    <p>💰 ${product.price} руб.</p>
+                    <div class="price">💰 ${product.price} руб.</div>
                     <div class="map-container" id="map"></div>
                 </div>
             `;
 
             // Инициализация карты
-            const map = new ymaps.Map('map', {
-                center: [product.latitude, product.longitude],
-                zoom: 15
+            ymaps.ready(function() {
+                const map = new ymaps.Map('map', {
+                    center: [product.latitude, product.longitude],
+                    zoom: 15
+                });
+                new ymaps.Placemark([product.latitude, product.longitude], {
+                    balloonContent: product.name
+                }).addTo(map);
             });
-            new ymaps.Placemark([product.latitude, product.longitude], {
-                balloonContent: product.name
-            }).addTo(map);
         }
 
         // Функция для отображения формы добавления товара
