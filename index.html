@@ -159,6 +159,8 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-card:hover {
@@ -168,29 +170,41 @@
         .product-image {
             width: 100%;
             height: 200px;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
         }
 
         .product-info {
             padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-name {
             font-size: 18px;
             font-weight: 500;
             margin-bottom: 8px;
+            color: var(--tg-theme-text-color);
         }
 
         .product-description {
             color: var(--tg-theme-hint-color);
             margin-bottom: 12px;
             font-size: 14px;
+            flex-grow: 1;
         }
 
         .product-price {
             font-size: 20px;
             font-weight: 600;
             color: var(--tg-theme-button-color);
+            margin-bottom: 10px;
         }
 
         .add-product-form {
@@ -313,6 +327,7 @@
         .delete-button {
             background: #ff4444;
             margin-top: 10px;
+            width: 100%;
         }
 
         .delete-button:hover {
@@ -704,13 +719,17 @@
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
-                        <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p>💰 ${product.price} руб.</p>
-                        ${user && user.id === product.user_id ? `
-                            <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
-                        ` : ''}
+                        <div class="product-image">
+                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name}</h3>
+                            <p class="product-description">${product.description}</p>
+                            <p class="product-price">💰 ${product.price} руб.</p>
+                            ${user && user.id === product.user_id ? `
+                                <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
+                            ` : ''}
+                        </div>
                     `;
                     card.onclick = (e) => {
                         if (!e.target.classList.contains('delete-button')) {
@@ -805,13 +824,17 @@
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
-                        <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p>💰 ${product.price} руб.</p>
-                        ${user && user.id === product.user_id ? `
-                            <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
-                        ` : ''}
+                        <div class="product-image">
+                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name}</h3>
+                            <p class="product-description">${product.description}</p>
+                            <p class="product-price">💰 ${product.price} руб.</p>
+                            ${user && user.id === product.user_id ? `
+                                <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
+                            ` : ''}
+                        </div>
                     `;
                     card.onclick = (e) => {
                         if (!e.target.classList.contains('delete-button')) {
