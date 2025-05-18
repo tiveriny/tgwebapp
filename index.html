@@ -349,13 +349,25 @@
         .product-details-view {
             display: none;
             padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--tg-theme-bg-color);
+            z-index: 1000;
+            overflow-y: auto;
         }
         .product-details-view.active {
             display: block;
         }
+        .product-details {
+            max-width: 600px;
+            margin: 0 auto;
+        }
         .product-details img {
             width: 100%;
-            max-height: 300px;
+            height: 300px;
             object-fit: cover;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -367,12 +379,20 @@
         .product-details p {
             margin-bottom: 15px;
             color: var(--tg-theme-hint-color);
+            line-height: 1.5;
         }
         .product-details .price {
             font-size: 28px;
             font-weight: 600;
             color: var(--tg-theme-button-color);
             margin-bottom: 20px;
+        }
+        .product-details .location {
+            margin-top: 20px;
+        }
+        .product-details .location h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -498,24 +518,31 @@
 
         // Показать детали товара
         function showProductDetails(id, product) {
+            const detailsView = document.getElementById('productDetailsView');
+            const details = detailsView.querySelector('.product-details');
+            
             // Заполняем данные товара
-            document.getElementById('detailsImage').src = product.image_url || 'https://via.placeholder.com/400';
-            document.getElementById('detailsImage').alt = product.name;
-            document.getElementById('detailsName').textContent = product.name;
-            document.getElementById('detailsDescription').textContent = product.description;
-            document.getElementById('detailsPrice').textContent = `💰 ${product.price} руб.`;
+            details.innerHTML = `
+                <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
+                <h2>${product.name}</h2>
+                <p>${product.description}</p>
+                <div class="price">💰 ${product.price} руб.</div>
+                <div class="location">
+                    <h3>Местоположение</h3>
+                    <div class="map-container" id="detailsMap"></div>
+                </div>
+            `;
 
-            // Скрываем основной контент и показываем детали
-            document.querySelector('.main-content').style.display = 'none';
-            document.getElementById('productDetailsView').classList.add('active');
+            // Показываем детали
+            detailsView.classList.add('active');
 
             // Инициализация карты
             ymaps.ready(function() {
                 const map = new ymaps.Map('detailsMap', {
-                    center: [product.latitude, product.longitude],
+                    center: [product.latitude || 62.0355, product.longitude || 129.6755],
                     zoom: 15
                 });
-                new ymaps.Placemark([product.latitude, product.longitude], {
+                new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
                     balloonContent: product.name
                 }).addTo(map);
             });
@@ -523,7 +550,6 @@
 
         // Скрыть детали товара
         function hideProductDetails() {
-            document.querySelector('.main-content').style.display = 'block';
             document.getElementById('productDetailsView').classList.remove('active');
         }
 
