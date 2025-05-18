@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #2481cc;
+            --tg-theme-button-color: #2481cc;
+            --tg-theme-button-text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--tg-theme-hint-color);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile {
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background-color: var(--tg-theme-hint-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--tg-theme-button-text-color);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-item label {
+            font-weight: 500;
+            margin-right: 10px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .button {
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .button:active {
+            opacity: 0.8;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--tg-theme-hint-color);
+            font-size: 14px;
+        }
+
+        .products-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .product-card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .product-description {
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
+        }
+
+        .add-product-form {
+            display: none;
+            padding: 20px;
+        }
+
+        .add-product-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--tg-theme-hint-color);
+            border-radius: 8px;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+
+        .map-container {
+            height: 300px;
+            margin: 15px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .product-details {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--tg-theme-bg-color);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .product-details.active {
+            display: block;
+        }
+
+        .product-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .product-details-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .product-details-info {
+            margin-bottom: 20px;
+        }
+
+        .product-details-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .product-details-description {
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .product-details-price {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
+            margin-bottom: 20px;
+        }
+
+        .product-details-location {
+            margin-top: 20px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: var(--tg-theme-button-color);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Маркетплейс Либерти</h1>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('products')">Товары</div>
+            <div class="tab" onclick="switchTab('profile')">Профиль</div>
+        </div>
+
+        <div id="products" class="tab-content active">
+            <div class="products-grid" id="productsGrid">
+                <!-- Товары будут добавлены через JavaScript -->
+            </div>
+            <button class="button" onclick="showAddProductForm()">Добавить товар</button>
+            
+            <div id="addProductForm" class="add-product-form">
+                <div class="form-group">
+                    <label>Название товара</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Цена (руб.)</label>
+                    <input type="number" id="productPrice" required>
+                </div>
+                <div class="form-group">
+                    <label>URL изображения</label>
+                    <input type="url" id="productImageUrl" required>
+                </div>
+                <div class="form-group">
+                    <label>Местоположение</label>
+                    <div class="map-container" id="map"></div>
+                    <input type="hidden" id="latitude" value="62.0355">
+                    <input type="hidden" id="longitude" value="129.6755">
+                </div>
+                <button class="button" onclick="addProduct()">Сохранить товар</button>
+            </div>
+        </div>
+
+        <div id="profile" class="tab-content">
+            <div class="card">
+                <div class="profile">
+                    <div class="profile-avatar" id="userAvatar">
+                        <!-- Аватар будет добавлен через JavaScript -->
+                    </div>
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <label>Имя:</label>
+                            <span id="firstName">Загрузка...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Username:</label>
+                            <span id="username">Загрузка...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+
+    <div id="productDetails" class="product-details">
+        <div class="product-details-header">
+            <button class="back-button" onclick="hideProductDetails()">← Назад</button>
+        </div>
+        <img id="detailsImage" class="product-details-image" src="" alt="">
+        <div class="product-details-info">
+            <h2 id="detailsName" class="product-details-name"></h2>
+            <p id="detailsDescription" class="product-details-description"></p>
+            <div id="detailsPrice" class="product-details-price"></div>
+            <div class="product-details-location">
+                <h3>Местоположение</h3>
+                <div class="map-container" id="detailsMap"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_ключ_яндекс_карт&lang=ru_RU"></script>
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Функция переключения вкладок
+        function switchTab(tabId) {
+            // Скрываем все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Показываем выбранную вкладку
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // Получение информации о пользователе
+        function updateUserInfo() {
+            if (tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                document.getElementById('firstName').textContent = user.first_name || 'Не указано';
+                document.getElementById('username').textContent = user.username || 'Не указано';
+                
+                // Устанавливаем аватар
+                const avatar = document.getElementById('userAvatar');
+                if (user.photo_url) {
+                    avatar.style.backgroundImage = `url(${user.photo_url})`;
+                    avatar.textContent = '';
+                } else {
+                    // Если фото нет, показываем инициалы
+                    const initials = (user.first_name ? user.first_name[0] : '') + 
+                                   (user.last_name ? user.last_name[0] : '');
+                    avatar.textContent = initials || '?';
+                }
+            } else {
+                document.getElementById('profile').innerHTML = '<h2>Информация недоступна</h2>';
+            }
+        }
+
+        // Функция для отправки данных обратно в бота
+        function sendData() {
+            const status = document.getElementById('status');
+            status.textContent = 'Отправка данных...';
+            
+            tg.sendData(JSON.stringify({
+                action: 'button_click',
+                timestamp: new Date().toISOString(),
+                user: tg.initDataUnsafe.user
+            }));
+
+            status.textContent = 'Данные отправлены!';
+            setTimeout(() => {
+                tg.close();
+            }, 1000);
+        }
+
+        // Функция для отображения формы добавления товара
+        function showAddProductForm() {
+            document.getElementById('addProductForm').classList.add('active');
+            initMap();
+        }
+
+        // Инициализация карты
+        function initMap() {
+            ymaps.ready(function() {
+                const map = new ymaps.Map('map', {
+                    center: [62.0355, 129.6755],
+                    zoom: 12
+                });
+
+                const placemark = new ymaps.Placemark([62.0355, 129.6755], {}, {
+                    draggable: true
+                });
+
+                map.geoObjects.add(placemark);
+
+                placemark.events.add('dragend', function(e) {
+                    const coords = placemark.geometry.getCoordinates();
+                    document.getElementById('latitude').value = coords[0];
+                    document.getElementById('longitude').value = coords[1];
+                });
+            });
+        }
+
+        // Функция для добавления товара
+        function addProduct() {
+            const product = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDescription').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                image_url: document.getElementById('productImageUrl').value,
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value)
+            };
+
+            tg.sendData(JSON.stringify({
+                action: 'add_product',
+                product: product
+            }));
+
+            document.getElementById('addProductForm').classList.remove('active');
+            loadProducts();
+        }
+
+        // Функция для отображения товаров
+        function displayProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.onclick = () => showProductDetails(product);
+
+                card.innerHTML = `
+                    <img src="${product.image_url}" class="product-image" alt="${product.name}">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-description">${product.description}</div>
+                        <div class="product-price">${product.price} ₽</div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Функция для отображения деталей товара
+        function showProductDetails(product) {
+            const details = document.getElementById('productDetails');
+            const image = document.getElementById('detailsImage');
+            const name = document.getElementById('detailsName');
+            const description = document.getElementById('detailsDescription');
+            const price = document.getElementById('detailsPrice');
+
+            image.src = product.image_url;
+            name.textContent = product.name;
+            description.textContent = product.description;
+            price.textContent = `${product.price} ₽`;
+
+            // Инициализируем карту с местоположением товара
+            ymaps.ready(function() {
+                const detailsMap = new ymaps.Map('detailsMap', {
+                    center: [product.latitude, product.longitude],
+                    zoom: 15
+                });
+
+                const placemark = new ymaps.Placemark([product.latitude, product.longitude], {
+                    balloonContent: product.name
+                });
+
+                detailsMap.geoObjects.add(placemark);
+            });
+
+            details.classList.add('active');
+        }
+
+        // Функция для скрытия деталей товара
+        function hideProductDetails() {
+            document.getElementById('productDetails').classList.remove('active');
+        }
+
+        // Функция для загрузки товаров
+        function loadProducts() {
+            tg.sendData(JSON.stringify({
+                action: 'get_products'
+            }));
+        }
+
+        // Обработка данных от бота
+        tg.onEvent('mainButtonClicked', function() {
+            tg.sendData(JSON.stringify({
+                action: 'get_products'
+            }));
+        });
+
+        // Обработка сообщений от бота
+        tg.onEvent('message', function(message) {
+            try {
+                const data = JSON.parse(message);
+                if (data.action === 'update_products') {
+                    displayProducts(data.products);
+                }
+            } catch (e) {
+                console.error('Error parsing message:', e);
+            }
+        });
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUserInfo();
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
