@@ -159,8 +159,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
         }
 
         .product-card:hover {
@@ -170,41 +168,29 @@
         .product-image {
             width: 100%;
             height: 200px;
-            overflow: hidden;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
             object-fit: cover;
         }
 
         .product-info {
             padding: 15px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
         }
 
         .product-name {
             font-size: 18px;
             font-weight: 500;
             margin-bottom: 8px;
-            color: var(--tg-theme-text-color);
         }
 
         .product-description {
             color: var(--tg-theme-hint-color);
             margin-bottom: 12px;
             font-size: 14px;
-            flex-grow: 1;
         }
 
         .product-price {
             font-size: 20px;
             font-weight: 600;
             color: var(--tg-theme-button-color);
-            margin-bottom: 10px;
         }
 
         .add-product-form {
@@ -245,12 +231,6 @@
             border-radius: 12px;
             overflow: hidden;
             margin-top: 10px;
-            position: relative;
-        }
-
-        .ymaps-2-1-79-map {
-            width: 100% !important;
-            height: 100% !important;
         }
 
         .product-details {
@@ -313,25 +293,17 @@
         }
 
         .back-button {
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
+            background: none;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            color: var(--tg-theme-button-color);
             font-size: 16px;
             cursor: pointer;
-            margin: 20px 0;
-            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 8px;
         }
 
-        .delete-button {
-            background: #ff4444;
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        .delete-button:hover {
-            background: #cc0000;
+        .back-button:hover {
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .version {
@@ -376,52 +348,62 @@
             display: block;
         }
         .product-details-view {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: white;
-            z-index: 9999;
+            background: var(--tg-theme-bg-color);
+            z-index: 1000;
             padding: 20px;
+            overflow-y: auto;
+        }
+        .product-details-view.active {
+            display: block;
         }
         .product-details {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-        }
-        .product-details img {
-            width: 100%;
-            height: 300px;
-            object-fit: contain;
-            margin-bottom: 20px;
-        }
-        .product-details h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        .product-details .price {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--tg-theme-button-color);
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         .back-button {
             background: var(--tg-theme-button-color);
-            color: white;
+            color: var(--tg-theme-button-text-color);
             border: none;
             padding: 10px 20px;
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .product-details .category-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border-radius: 8px;
-            font-size: 14px;
+        .product-details img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .product-details h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color);
+        }
+        .product-details p {
+            margin-bottom: 15px;
+            color: var(--tg-theme-hint-color);
+            line-height: 1.6;
+        }
+        .product-details .price {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
             margin-bottom: 20px;
         }
         .product-details .location {
@@ -504,7 +486,7 @@
     <div class="container">
         <div class="main-content">
             <div class="header">
-                <h1>Вход в админ панель</h1>
+                <h1>Маркетплейс Либерти</h1>
             </div>
             
             <div class="tabs">
@@ -578,7 +560,7 @@
                     </div>
                 </div>
                 <div class="admin-panel" id="adminPanel">
-                    <h3>Панель администратора</h3>
+                    <h3>Вход в админ панель</h3>
                     <div class="form-group">
                         <label>Название категории</label>
                         <input type="text" id="categoryName" required>
@@ -634,7 +616,7 @@
 
         // Показать детали товара
         function showProductDetails(id, product) {
-            console.log('Showing details for product:', id);
+            console.log('Showing details for product:', id, product);
             
             // Скрываем основной контент
             const mainContent = document.querySelector('.main-content');
@@ -642,29 +624,50 @@
                 mainContent.style.display = 'none';
             }
             
-            // Форматируем данные
-            const name = product.name || 'Без названия';
-            const price = product.price || 0;
-            const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
-            
             // Создаем и показываем детали товара
             const detailsView = document.createElement('div');
-            detailsView.className = 'product-details-view';
+            detailsView.className = 'product-details-view active';
             detailsView.innerHTML = `
-                <button class="back-button" onclick="hideProductDetails()">← Назад</button>
+                <button class="back-button" onclick="hideProductDetails()">
+                    <span>←</span>
+                    <span>Назад</span>
+                </button>
                 <div class="product-details">
-                    <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
-                    <h2>${name}</h2>
-                    <div class="price">💰 ${price} руб.</div>
+                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
+                    <h2>${product.name}</h2>
+                    <p>${product.description}</p>
+                    <div class="price">💰 ${product.price} руб.</div>
+                    <div class="category-badge">${product.category || 'Без категории'}</div>
+                    <div class="location">
+                        <h3>Местоположение</h3>
+                        <div class="map-container" id="detailsMap"></div>
+                    </div>
+                    ${user && user.id === product.user_id ? `
+                        <button class="button" onclick="deleteProduct('${id}')" style="background-color: #ff4444; margin-top: 10px;">Удалить товар</button>
+                    ` : ''}
                 </div>
             `;
             
             // Добавляем на страницу
             document.body.appendChild(detailsView);
+            
+            // Инициализируем карту
+            ymaps.ready(function() {
+                const map = new ymaps.Map('detailsMap', {
+                    center: [product.latitude || 62.0355, product.longitude || 129.6755],
+                    zoom: 15,
+                    controls: ['zoomControl']
+                });
+                new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
+                    balloonContent: product.name
+                }).addTo(map);
+            });
         }
 
         // Скрыть детали товара
         function hideProductDetails() {
+            console.log('Hiding product details');
+            
             // Удаляем детали товара
             const detailsView = document.querySelector('.product-details-view');
             if (detailsView) {
@@ -684,7 +687,7 @@
             const productsRef = database.ref('products');
             productsRef.on('value', (snapshot) => {
                 const products = snapshot.val() || {};
-                console.log('Raw products data:', JSON.stringify(products, null, 2));
+                console.log('Products loaded:', products);
                 
                 const productGrid = document.getElementById('productGrid');
                 if (!productGrid) {
@@ -695,49 +698,19 @@
                 productGrid.innerHTML = '';
 
                 Object.entries(products).forEach(([id, product]) => {
-                    console.log('Processing product:', id);
-                    console.log('Product data:', JSON.stringify(product, null, 2));
-                    
                     const card = document.createElement('div');
                     card.className = 'product-card';
-                    
-                    // Проверяем и форматируем данные
-                    const name = product.name || 'Без названия';
-                    const description = product.description || 'Нет описания';
-                    const price = product.price || 0;
-                    const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
-                    
-                    console.log('Formatted product card data:', {
-                        name,
-                        description,
-                        price,
-                        imageUrl
-                    });
-                    
                     card.innerHTML = `
-                        <div class="product-image">
-                            <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">${name}</h3>
-                            <p class="product-description">${description}</p>
-                            <p class="product-price">💰 ${price} руб.</p>
-                            ${user && user.id === product.user_id ? `
-                                <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
-                            ` : ''}
-                        </div>
+                        <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p>💰 ${product.price} руб.</p>
                     `;
-                    
-                    // Добавляем обработчик клика
-                    card.addEventListener('click', (e) => {
-                        if (!e.target.classList.contains('delete-button')) {
-                            console.log('Card clicked, showing details for product:', id);
-                            showProductDetails(id, product);
-                        }
-                    });
-                    
+                    card.onclick = () => {
+                        console.log('Card clicked:', id, product);
+                        showProductDetails(id, product);
+                    };
                     productGrid.appendChild(card);
-                    console.log('Product card added to grid');
                 });
             });
         }
@@ -817,39 +790,25 @@
                 const products = snapshot.val() || {};
                 const productGrid = document.getElementById('productGrid');
                 productGrid.innerHTML = `
-                    <h2>${category.name}</h2>
-                    <button class="back-button" onclick="loadProducts()">← Вернуться к категориям</button>
+                    <div style="margin-bottom: 20px;">
+                        <button class="back-button" onclick="loadProducts()" style="margin-bottom: 20px;">
+                            <span>←</span>
+                            <span>Вернуться ко всем категориям</span>
+                        </button>
+                        <h2>${category.name}</h2>
+                    </div>
                 `;
                 
                 Object.entries(products).forEach(([id, product]) => {
-                    console.log('Processing category product:', id, product);
                     const card = document.createElement('div');
                     card.className = 'product-card';
-                    
-                    // Проверяем и форматируем данные
-                    const name = product.name || 'Без названия';
-                    const description = product.description || 'Нет описания';
-                    const price = product.price || 0;
-                    const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
-                    
                     card.innerHTML = `
-                        <div class="product-image">
-                            <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">${name}</h3>
-                            <p class="product-description">${description}</p>
-                            <p class="product-price">💰 ${price} руб.</p>
-                            ${user && user.id === product.user_id ? `
-                                <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
-                            ` : ''}
-                        </div>
+                        <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p>💰 ${product.price} руб.</p>
                     `;
-                    card.onclick = (e) => {
-                        if (!e.target.classList.contains('delete-button')) {
-                            showProductDetails(id, product);
-                        }
-                    };
+                    card.onclick = () => showProductDetails(id, product);
                     productGrid.appendChild(card);
                 });
             });
@@ -955,33 +914,32 @@
         loadCategories();
 
         // Функция для удаления товара
-        function deleteProduct(productId, event) {
-            event.stopPropagation();
+        function deleteProduct(productId) {
             if (confirm('Вы уверены, что хотите удалить этот товар?')) {
                 const productsRef = database.ref(`products/${productId}`);
                 productsRef.once('value').then((snapshot) => {
                     const product = snapshot.val();
                     if (product) {
-                        // Удаляем товар
-                        productsRef.remove().then(() => {
-                            // Обновляем счетчик товаров в категории
-                            const categoriesRef = database.ref(`categories/${product.category}`);
-                            categoriesRef.once('value').then((snapshot) => {
-                                const category = snapshot.val();
-                                if (category) {
-                                    categoriesRef.update({
-                                        productCount: Math.max(0, (category.productCount || 0) - 1)
-                                    });
-                                }
-                            });
-                            
-                            tg.showPopup({
-                                title: 'Успех',
-                                message: 'Товар успешно удален',
-                                buttons: [{type: 'ok'}]
-                            });
+                        // Обновляем счетчик товаров в категории
+                        const categoriesRef = database.ref(`categories/${product.category}`);
+                        categoriesRef.once('value').then((categorySnapshot) => {
+                            const category = categorySnapshot.val();
+                            if (category) {
+                                categoriesRef.update({
+                                    productCount: Math.max(0, (category.productCount || 0) - 1)
+                                });
+                            }
                         });
                     }
+                });
+                
+                productsRef.remove().then(() => {
+                    hideProductDetails();
+                    tg.showPopup({
+                        title: 'Успех',
+                        message: 'Товар успешно удален',
+                        buttons: [{type: 'ok'}]
+                    });
                 });
             }
         }
