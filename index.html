@@ -651,35 +651,16 @@
                     <span>Назад</span>
                 </button>
                 <div class="product-details">
-                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
-                    <h2>${product.name}</h2>
-                    <p>${product.description}</p>
-                    <div class="price">💰 ${product.price} руб.</div>
+                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name || 'Товар'}">
+                    <h2>${product.name || 'Без названия'}</h2>
+                    <p>${product.description || 'Нет описания'}</p>
+                    <div class="price">💰 ${product.price || 0} руб.</div>
                     <div class="category-badge">${product.category || 'Без категории'}</div>
-                    <div class="location">
-                        <h3>Местоположение</h3>
-                        <div class="map-container" id="detailsMap"></div>
-                    </div>
                 </div>
             `;
             
             // Добавляем на страницу
             document.body.appendChild(detailsView);
-            
-            // Инициализируем карту
-            ymaps.ready(function() {
-                const map = new ymaps.Map('detailsMap', {
-                    center: [product.latitude || 62.0355, product.longitude || 129.6755],
-                    zoom: 15,
-                    controls: ['zoomControl']
-                });
-                
-                const placemark = new ymaps.Placemark([product.latitude || 62.0355, product.longitude || 129.6755], {
-                    balloonContent: product.name
-                });
-                
-                map.geoObjects.add(placemark);
-            });
         }
 
         // Скрыть детали товара
@@ -716,16 +697,17 @@
                 productGrid.innerHTML = '';
 
                 Object.entries(products).forEach(([id, product]) => {
+                    console.log('Processing product:', id, product);
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
                         <div class="product-image">
-                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
+                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name || 'Товар'}">
                         </div>
                         <div class="product-info">
-                            <h3 class="product-name">${product.name}</h3>
-                            <p class="product-description">${product.description}</p>
-                            <p class="product-price">💰 ${product.price} руб.</p>
+                            <h3 class="product-name">${product.name || 'Без названия'}</h3>
+                            <p class="product-description">${product.description || 'Нет описания'}</p>
+                            <p class="product-price">💰 ${product.price || 0} руб.</p>
                             ${user && user.id === product.user_id ? `
                                 <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
                             ` : ''}
@@ -821,16 +803,17 @@
                 `;
                 
                 Object.entries(products).forEach(([id, product]) => {
+                    console.log('Processing category product:', id, product);
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
                         <div class="product-image">
-                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}">
+                            <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name || 'Товар'}">
                         </div>
                         <div class="product-info">
-                            <h3 class="product-name">${product.name}</h3>
-                            <p class="product-description">${product.description}</p>
-                            <p class="product-price">💰 ${product.price} руб.</p>
+                            <h3 class="product-name">${product.name || 'Без названия'}</h3>
+                            <p class="product-description">${product.description || 'Нет описания'}</p>
+                            <p class="product-price">💰 ${product.price || 0} руб.</p>
                             ${user && user.id === product.user_id ? `
                                 <button class="button delete-button" onclick="deleteProduct('${id}', event)">Удалить</button>
                             ` : ''}
