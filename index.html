@@ -634,7 +634,8 @@
 
         // Показать детали товара
         function showProductDetails(id, product) {
-            console.log('Showing details for product:', id, product);
+            console.log('Showing details for product:', id);
+            console.log('Product data:', JSON.stringify(product, null, 2));
             
             // Скрываем основной контент
             const mainContent = document.querySelector('.main-content');
@@ -648,6 +649,14 @@
             const price = product.price || 0;
             const imageUrl = product.image_url || 'https://placehold.co/400x300/e2e8f0/1e293b?text=Нет+изображения';
             const category = product.category || 'Без категории';
+            
+            console.log('Formatted product data:', {
+                name,
+                description,
+                price,
+                imageUrl,
+                category
+            });
             
             // Создаем и показываем детали товара
             const detailsView = document.createElement('div');
@@ -668,6 +677,7 @@
             
             // Добавляем на страницу
             document.body.appendChild(detailsView);
+            console.log('Product details view added to page');
         }
 
         // Скрыть детали товара
@@ -693,7 +703,7 @@
             const productsRef = database.ref('products');
             productsRef.on('value', (snapshot) => {
                 const products = snapshot.val() || {};
-                console.log('Products loaded:', products);
+                console.log('Raw products data:', JSON.stringify(products, null, 2));
                 
                 const productGrid = document.getElementById('productGrid');
                 if (!productGrid) {
@@ -704,7 +714,9 @@
                 productGrid.innerHTML = '';
 
                 Object.entries(products).forEach(([id, product]) => {
-                    console.log('Processing product:', id, product);
+                    console.log('Processing product:', id);
+                    console.log('Product data:', JSON.stringify(product, null, 2));
+                    
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     
@@ -713,6 +725,13 @@
                     const description = product.description || 'Нет описания';
                     const price = product.price || 0;
                     const imageUrl = product.image_url || 'https://placehold.co/200x200/e2e8f0/1e293b?text=Нет+изображения';
+                    
+                    console.log('Formatted product card data:', {
+                        name,
+                        description,
+                        price,
+                        imageUrl
+                    });
                     
                     card.innerHTML = `
                         <div class="product-image">
@@ -727,12 +746,17 @@
                             ` : ''}
                         </div>
                     `;
-                    card.onclick = (e) => {
+                    
+                    // Добавляем обработчик клика
+                    card.addEventListener('click', (e) => {
                         if (!e.target.classList.contains('delete-button')) {
+                            console.log('Card clicked, showing details for product:', id);
                             showProductDetails(id, product);
                         }
-                    };
+                    });
+                    
                     productGrid.appendChild(card);
+                    console.log('Product card added to grid');
                 });
             });
         }
