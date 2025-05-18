@@ -388,7 +388,7 @@
             overflow-y: auto;
         }
         .product-details-view.active {
-            display: block;
+            display: block !important;
         }
         .product-details {
             max-width: 600px;
@@ -668,9 +668,15 @@
                 category
             });
             
+            // Удаляем предыдущий просмотр, если он есть
+            const existingView = document.querySelector('.product-details-view');
+            if (existingView) {
+                existingView.remove();
+            }
+            
             // Создаем и показываем детали товара
             const detailsView = document.createElement('div');
-            detailsView.className = 'product-details-view active';
+            detailsView.className = 'product-details-view';
             detailsView.innerHTML = `
                 <button class="back-button" onclick="hideProductDetails()">
                     <span>←</span>
@@ -687,6 +693,12 @@
             
             // Добавляем на страницу
             document.body.appendChild(detailsView);
+            
+            // Принудительно показываем через setTimeout
+            setTimeout(() => {
+                detailsView.classList.add('active');
+            }, 0);
+            
             console.log('Product details view added to page');
         }
 
