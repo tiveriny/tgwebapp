@@ -376,53 +376,43 @@
             display: block;
         }
         .product-details-view {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: var(--tg-theme-bg-color);
-            z-index: 1000;
+            background: white;
+            z-index: 9999;
             padding: 20px;
-            overflow-y: auto;
-        }
-        .product-details-view.active {
-            display: block !important;
         }
         .product-details {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background: var(--tg-theme-bg-color);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .back-button:hover {
-            background: rgba(0, 0, 0, 0.05);
         }
         .product-details img {
             width: 100%;
             height: 300px;
             object-fit: contain;
-            border-radius: 12px;
             margin-bottom: 20px;
-            background: #f5f5f5;
         }
         .product-details h2 {
             font-size: 24px;
             margin-bottom: 10px;
-            color: var(--tg-theme-text-color);
-        }
-        .product-details p {
-            margin-bottom: 15px;
-            color: var(--tg-theme-hint-color);
-            line-height: 1.6;
         }
         .product-details .price {
             font-size: 28px;
             font-weight: 600;
             color: var(--tg-theme-button-color);
+        }
+        .back-button {
+            background: var(--tg-theme-button-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
             margin-bottom: 20px;
         }
         .product-details .category-badge {
@@ -645,7 +635,6 @@
         // Показать детали товара
         function showProductDetails(id, product) {
             console.log('Showing details for product:', id);
-            console.log('Product data:', JSON.stringify(product, null, 2));
             
             // Скрываем основной контент
             const mainContent = document.querySelector('.main-content');
@@ -653,59 +642,29 @@
                 mainContent.style.display = 'none';
             }
             
-            // Проверяем и форматируем данные
+            // Форматируем данные
             const name = product.name || 'Без названия';
-            const description = product.description || 'Нет описания';
             const price = product.price || 0;
             const imageUrl = product.image_url || 'https://cdn-icons-png.flaticon.com/512/4054/4054617.png';
-            const category = product.category || 'Без категории';
-            
-            console.log('Formatted product data:', {
-                name,
-                description,
-                price,
-                imageUrl,
-                category
-            });
-            
-            // Удаляем предыдущий просмотр, если он есть
-            const existingView = document.querySelector('.product-details-view');
-            if (existingView) {
-                existingView.remove();
-            }
             
             // Создаем и показываем детали товара
             const detailsView = document.createElement('div');
             detailsView.className = 'product-details-view';
             detailsView.innerHTML = `
-                <button class="back-button" onclick="hideProductDetails()">
-                    <span>←</span>
-                    <span>Назад</span>
-                </button>
+                <button class="back-button" onclick="hideProductDetails()">← Назад</button>
                 <div class="product-details">
                     <img src="${imageUrl}" alt="${name}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/4054/4054617.png'">
                     <h2>${name}</h2>
-                    <p>${description}</p>
                     <div class="price">💰 ${price} руб.</div>
-                    <div class="category-badge">${category}</div>
                 </div>
             `;
             
             // Добавляем на страницу
             document.body.appendChild(detailsView);
-            
-            // Принудительно показываем через setTimeout
-            setTimeout(() => {
-                detailsView.classList.add('active');
-            }, 0);
-            
-            console.log('Product details view added to page');
         }
 
         // Скрыть детали товара
         function hideProductDetails() {
-            console.log('Hiding product details');
-            
             // Удаляем детали товара
             const detailsView = document.querySelector('.product-details-view');
             if (detailsView) {
