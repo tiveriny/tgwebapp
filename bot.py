@@ -2,7 +2,7 @@ import os
 import json
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
-import database
+import firebase_db
 
 # Токен вашего бота
 TOKEN = "7842727926:AAGNz2OAkkucu94mAzg8VU18P-RD3BZCA3Q"
@@ -27,7 +27,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if query.data == "my_products":
         user_id = query.from_user.id
-        products = database.get_user_products(user_id)
+        products = firebase_db.get_user_products(user_id)
         
         if not products:
             await query.message.reply_text("У вас пока нет товаров.")
@@ -35,9 +35,9 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         message = "Ваши товары:\n\n"
         for product in products:
-            message += f"📦 {product[1]}\n"
-            message += f"💰 Цена: {product[3]} руб.\n"
-            message += f"📍 Местоположение: {product[5]}, {product[6]}\n\n"
+            message += f"📦 {product['name']}\n"
+            message += f"💰 Цена: {product['price']} руб.\n"
+            message += f"📍 Местоположение: {product['latitude']}, {product['longitude']}\n\n"
         
         await query.message.reply_text(message)
 
@@ -49,7 +49,7 @@ async def webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if data.get('action') == 'add_product':
             product = data.get('product', {})
-            product_id = database.add_product(
+            product_id = firebase_db.add_product(
                 name=product.get('name'),
                 description=product.get('description'),
                 price=product.get('price'),
@@ -61,22 +61,12 @@ async def webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Товар успешно добавлен!")
 
         elif data.get('action') == 'get_products':
-            products = database.get_all_products()
+            products = firebase_db.get_all_products()
             # Отправляем список товаров обратно в веб-приложение
             await update.message.reply_text(
                 json.dumps({
                     'action': 'update_products',
-                    'products': [
-                        {
-                            'id': p[0],
-                            'name': p[1],
-                            'description': p[2],
-                            'price': p[3],
-                            'image_url': p[4],
-                            'latitude': p[5],
-                            'longitude': p[6]
-                        } for p in products
-                    ]
+                    'products': products
                 })
             )
 
