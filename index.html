@@ -365,12 +365,11 @@
         .product-details {
             max-width: 600px;
             margin: 0 auto;
-            padding-bottom: 40px;
+            padding: 20px;
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
         }
         .back-button {
-            position: fixed;
-            top: 20px;
-            left: 20px;
             background: var(--tg-theme-button-color);
             color: var(--tg-theme-button-text-color);
             border: none;
@@ -378,7 +377,7 @@
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
-            z-index: 1001;
+            margin-bottom: 20px;
         }
         .product-details img {
             width: 100%;
@@ -540,8 +539,8 @@
             const detailsView = document.createElement('div');
             detailsView.className = 'product-details-view active';
             detailsView.innerHTML = `
-                <button class="back-button" onclick="hideProductDetails()">← Назад</button>
                 <div class="product-details">
+                    <button class="back-button" onclick="hideProductDetails()">← Назад</button>
                     <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}">
                     <h2>${product.name}</h2>
                     <p>${product.description}</p>
