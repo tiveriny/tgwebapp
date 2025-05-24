@@ -7,6 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --tg-theme-bg-color: #ffffff;
@@ -37,18 +38,23 @@
         .container {
             max-width: 100%;
             margin: 0 auto;
-            padding: 15px;
+            padding: 10px;
             box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
+            margin-bottom: 20px;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            background: var(--tg-theme-bg-color);
+            z-index: 101;
         }
 
         .header h1 {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 600;
             margin-bottom: 5px;
             background: linear-gradient(45deg, var(--tg-theme-button-color), #4a90e2);
@@ -65,6 +71,10 @@
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            position: sticky;
+            top: 0;
+            background: var(--tg-theme-bg-color);
+            z-index: 100;
         }
 
         .tabs::-webkit-scrollbar {
@@ -157,11 +167,12 @@
 
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            padding: 15px 0;
             position: relative;
             z-index: 1;
+            perspective: 1000px;
         }
 
         .product-card {
@@ -170,16 +181,27 @@
             overflow: hidden;
             box-shadow: var(--card-shadow);
             cursor: pointer;
-            transition: all var(--transition-speed) ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            will-change: transform, opacity;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .product-card.sorting {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.5;
+            transform: translateY(10px) scale(0.98);
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
 
         .product-info {
             padding: 20px;
+            transition: all 0.3s ease;
         }
 
         .product-name {
@@ -187,6 +209,7 @@
             font-weight: 600;
             margin-bottom: 10px;
             color: var(--tg-theme-text-color);
+            transition: color 0.3s ease;
         }
 
         .product-description {
@@ -194,12 +217,14 @@
             margin-bottom: 15px;
             font-size: 15px;
             line-height: 1.5;
+            transition: color 0.3s ease;
         }
 
         .product-price {
             font-size: 24px;
             font-weight: 600;
             color: var(--tg-theme-button-color);
+            transition: color 0.3s ease;
         }
 
         .map-container {
@@ -395,7 +420,7 @@
         .category-filter {
             display: flex;
             gap: 10px;
-            margin: 20px 0;
+            margin: 15px 0;
             flex-wrap: wrap;
             padding: 0;
             position: relative;
@@ -405,6 +430,10 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             padding-bottom: 5px;
+            position: sticky;
+            top: 60px;
+            background: var(--tg-theme-bg-color);
+            z-index: 99;
         }
 
         .category-filter::-webkit-scrollbar {
@@ -431,6 +460,50 @@
         }
 
         .category-filter button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            align-items: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 110px;
+            background: var(--tg-theme-bg-color);
+            z-index: 98;
+            padding: 5px 0;
+        }
+
+        .sort-label {
+            font-weight: 500;
+            color: var(--tg-theme-text-color);
+            margin-right: 5px;
+        }
+
+        .sort-buttons button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: var(--tg-theme-bg-color);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--tg-theme-text-color);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sort-buttons button.active {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border-color: var(--tg-theme-button-color);
+        }
+
+        .sort-buttons button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
@@ -522,11 +595,15 @@
             background: var(--tg-theme-bg-color);
             border-radius: 16px;
             box-shadow: var(--card-shadow);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .product-details img {
             width: 100%;
-            height: 400px;
+            height: auto;
+            max-height: 400px;
             object-fit: cover;
             border-radius: 16px;
             margin-bottom: 25px;
@@ -656,6 +733,7 @@
             margin-bottom: 15px;
             resize: vertical;
             min-height: 100px;
+            max-height: 200px;
         }
 
         .review-form textarea:focus {
@@ -762,6 +840,137 @@
             z-index: 2;
         }
 
+        .categories-list {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .categories-list h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .store-card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .store-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .store-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .store-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stores-list {
+            margin-top: 20px;
+        }
+
+        .admin-section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .admin-section h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .pending-products {
+            margin-bottom: 20px;
+        }
+
+        .no-pending-products {
+            text-align: center;
+            padding: 20px;
+            color: var(--tg-theme-hint-color);
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .category-card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .edit-button {
+            background-color: var(--tg-theme-button-color);
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .edit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(36, 129, 204, 0.2);
+        }
+
+        .categories-list {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .categories-list h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--tg-theme-text-color);
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 10px;
@@ -787,6 +996,82 @@
             .product-details .price {
                 font-size: 28px;
             }
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .admin-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--tg-theme-button-color), #4a90e2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .excel-upload {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--tg-theme-bg-color);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .excel-upload h3 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .excel-upload p {
+            margin-bottom: 15px;
+            color: var(--tg-theme-hint-color);
+            font-size: 14px;
+        }
+
+        .excel-template {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--tg-theme-link-color);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .excel-template:hover {
+            color: var(--tg-theme-button-color);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-top: 15px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(36, 129, 204, 0.2);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color);
         }
     </style>
 </head>
@@ -838,6 +1123,12 @@
                                 <input type="hidden" id="latitude" value="62.0355">
                                 <input type="hidden" id="longitude" value="129.6755">
                             </div>
+                            <div class="form-group">
+                                <label>Популярный магазин</label>
+                                <select id="popularStore">
+                                    <option value="">Выберите магазин</option>
+                                </select>
+                            </div>
                             <button class="button" onclick="addProduct()">Сохранить товар</button>
                             <button class="button" onclick="hideAddProductForm()" style="margin-top: 10px; background-color: var(--tg-theme-hint-color);">Отмена</button>
                         </div>
@@ -846,11 +1137,27 @@
                             <!-- Category filters will be added here dynamically -->
                         </div>
 
+                        <div class="sort-buttons">
+                            <span class="sort-label">Сортировка:</span>
+                            <button id="sortDefault" onclick="sortProducts('default')" class="active">
+                                <span>↔</span> По умолчанию
+                            </button>
+                            <button id="sortAsc" onclick="sortProducts('asc')">
+                                <span>↑</span> По возрастанию цены
+                            </button>
+                            <button id="sortDesc" onclick="sortProducts('desc')">
+                                <span>↓</span> По убыванию цены
+                            </button>
+                        </div>
+
                         <div class="products-grid" id="productGrid"></div>
                     </div>
                 </div>
 
                 <div class="tab-content" id="categories">
+                    <div class="admin-header">
+                        <h2>Админ-Панель</h2>
+                    </div>
                     <div id="adminLoginForm" class="admin-login-form">
                         <h2>Вход в админ-панель</h2>
                         <div class="form-group">
@@ -868,6 +1175,41 @@
                                 <input type="text" id="categoryName">
                             </div>
                             <button class="button" onclick="addCategory()">Добавить категорию</button>
+                            
+                            <div class="categories-list" id="categoriesList">
+                                <h3>Существующие категории</h3>
+                                <!-- Здесь будут отображаться категории -->
+                            </div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h2>Импорт товаров из Excel</h2>
+                            <div class="excel-upload">
+                                <h3>Загрузка товаров из Excel</h3>
+                                <p>Поддерживаемые форматы: .xlsx, .xls</p>
+                                <p>Структура файла должна содержать следующие колонки:</p>
+                                <ul style="color: var(--tg-theme-hint-color); margin-bottom: 15px; padding-left: 20px;">
+                                    <li>name - название товара</li>
+                                    <li>description - описание товара</li>
+                                    <li>price - цена товара</li>
+                                    <li>category - ID категории</li>
+                                    <li>image_url - URL изображения (опционально)</li>
+                                    <li>address - адрес (опционально)</li>
+                                </ul>
+                                <p style="margin-bottom: 15px;">Скачайте шаблон Excel по ссылке:</p>
+                                <a href="https://docs.google.com/spreadsheets/d/1_7_TYc7XMoFQOCFywSxRBmYnjUZ4qCfs/edit?usp=drive_link&ouid=109154224706737583540&rtpof=true&sd=true" 
+                                   target="_blank" 
+                                   style="color: var(--tg-theme-link-color); text-decoration: underline; margin-bottom: 20px; display: inline-block;">
+                                    Шаблон Excel на Google Drive
+                                </a>
+                                <div class="file-input-wrapper">
+                                    <label class="file-input-label">
+                                        Выбрать файл Excel
+                                        <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
+                                    </label>
+                                    <div class="file-name" id="fileName"></div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="admin-section">
@@ -876,8 +1218,22 @@
                                 <!-- Здесь будут отображаться товары на модерацию -->
                             </div>
                         </div>
-                        
-                        <div class="categories-list" id="categoriesList"></div>
+
+                        <div class="admin-section">
+                            <h2>Управление популярными магазинами</h2>
+                            <div class="form-group">
+                                <label>Название магазина</label>
+                                <input type="text" id="storeName">
+                            </div>
+                            <div class="form-group">
+                                <label>Местоположение магазина</label>
+                                <div class="map-container" id="storeMap"></div>
+                                <input type="hidden" id="storeLatitude" value="62.0355">
+                                <input type="hidden" id="storeLongitude" value="129.6755">
+                            </div>
+                            <button class="button" onclick="addStore()">Добавить магазин</button>
+                            <div class="stores-list" id="storesList"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -955,6 +1311,7 @@
         let isAdmin = false;
         let currentCategory = null;
         let currentProductId = null;
+        let currentSort = null; // Добавляем переменную для хранения текущей сортировки
 
         // Загрузка данных пользователя
         const user = tg.initDataUnsafe?.user;
@@ -988,23 +1345,117 @@
                 const targetContent = document.getElementById(tab.dataset.tab);
                 if (targetContent) {
                     targetContent.classList.add('active');
+                    
+                    // Если открыта вкладка управления и пользователь админ, обновляем список товаров на модерацию
+                    if (tab.dataset.tab === 'categories' && isAdmin) {
+                        console.log('Categories tab opened, updating pending products');
+                        loadPendingProducts();
+                        checkModerationStatus();
+                    }
                 }
             });
         });
 
+        // Функция сортировки товаров
+        function sortProducts(direction) {
+            const productGrid = document.getElementById('productGrid');
+            const cards = productGrid.querySelectorAll('.product-card');
+            
+            // Добавляем класс sorting ко всем карточкам
+            cards.forEach(card => card.classList.add('sorting'));
+            
+            // Обновляем текущую сортировку
+            currentSort = direction === 'default' ? null : direction;
+            
+            // Обновляем активные кнопки
+            document.getElementById('sortDefault').classList.toggle('active', direction === 'default');
+            document.getElementById('sortAsc').classList.toggle('active', direction === 'asc');
+            document.getElementById('sortDesc').classList.toggle('active', direction === 'desc');
+            
+            // Ждем завершения анимации и перезагружаем товары
+            setTimeout(() => {
+                loadProducts();
+            }, 300);
+        }
+
         // Функция отрисовки товаров
         function renderProducts(products) {
             const productGrid = document.getElementById('productGrid');
-            productGrid.innerHTML = '';
+            
+            // Получаем текущую категорию и её название
+            let currentCategoryName = '';
+            if (currentCategory) {
+                const categorySelect = document.getElementById('productCategory');
+                const option = categorySelect.querySelector(`option[value="${currentCategory}"]`);
+                if (option) {
+                    currentCategoryName = option.textContent;
+                }
+            }
 
-            Object.entries(products)
-                .filter(([_, product]) => 
-                    (product.status === 'approved' || product.status === undefined) && 
-                    (!currentCategory || product.category === currentCategory)
-                )
-                .forEach(([id, product]) => {
+            console.log('Current category ID:', currentCategory);
+            console.log('Current category name:', currentCategoryName);
+
+            // Получаем Firebase ID для категории 1
+            const categoriesRef = database.ref('categories');
+            categoriesRef.once('value').then((snapshot) => {
+                const categories = snapshot.val() || {};
+                let category1FirebaseId = null;
+                
+                // Находим Firebase ID для категории с ID 1
+                Object.entries(categories).forEach(([firebaseId, category]) => {
+                    if (category.id === 1) {
+                        category1FirebaseId = firebaseId;
+                    }
+                });
+
+                console.log('Category 1 Firebase ID:', category1FirebaseId);
+
+                let filteredProducts = Object.entries(products)
+                    .filter(([_, product]) => {
+                        // Проверяем статус товара
+                        const isApproved = product.status === 'approved' || product.status === undefined;
+                        
+                        // Если категория не выбрана, показываем все товары
+                        if (!currentCategory) {
+                            return isApproved;
+                        }
+                        
+                        // Проверяем совпадение категории
+                        const productCategory = String(product.category);
+                        const currentCategoryStr = String(currentCategory);
+                        
+                        // Проверяем оба варианта категории
+                        const matchesCategory = 
+                            productCategory === currentCategoryStr || // Новый формат (числовой ID)
+                            (currentCategory === '1' && productCategory === category1FirebaseId); // Старый формат (Firebase ID)
+                        
+                        return isApproved && matchesCategory;
+                    });
+
+                // Применяем сортировку, если она выбрана
+                if (currentSort) {
+                    filteredProducts.sort(([, a], [, b]) => {
+                        const priceA = parseFloat(a.price) || 0;
+                        const priceB = parseFloat(b.price) || 0;
+                        return currentSort === 'asc' ? priceA - priceB : priceB - priceA;
+                    });
+                } else {
+                    // Если сортировка отключена, сортируем по дате создания (новые сверху)
+                    filteredProducts.sort(([, a], [, b]) => {
+                        const dateA = new Date(a.created_at || 0);
+                        const dateB = new Date(b.created_at || 0);
+                        return dateB - dateA;
+                    });
+                }
+
+                // Очищаем сетку
+                productGrid.innerHTML = '';
+
+                // Отрисовываем отфильтрованные товары с задержкой для анимации
+                filteredProducts.forEach(([id, product], index) => {
                     const card = document.createElement('div');
                     card.className = 'product-card';
+                    card.style.transitionDelay = `${index * 50}ms`;
                     
                     card.innerHTML = `
                         <div class="product-info">
@@ -1027,6 +1478,16 @@
 
                     productGrid.appendChild(card);
                 });
+
+                // Если нет товаров, показываем сообщение
+                if (filteredProducts.length === 0) {
+                    productGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">
+                            ${currentCategory ? 'В этой категории пока нет товаров' : 'Нет доступных товаров'}
+                        </div>
+                    `;
+                }
+            });
         }
 
         // Показать детали товара
@@ -1040,32 +1501,58 @@
                 return;
             }
             
-            currentProductId = id; // Сохраняем ID текущего товара
+            currentProductId = id;
             
+            // Создаем или получаем основные элементы
             const mainContent = document.querySelector('.main-content');
-            const detailsView = document.getElementById('productDetailsView');
+            let detailsView = document.getElementById('productDetailsView');
+            
+            if (!mainContent) {
+                console.error('[showProductDetails] Main content element is missing.');
+                return;
+            }
+
+            // Если detailsView не существует, создаем его
+            if (!detailsView) {
+                detailsView = document.createElement('div');
+                detailsView.id = 'productDetailsView';
+                detailsView.className = 'product-details-view';
+                document.body.appendChild(detailsView);
+            }
+
+            // Создаем структуру для деталей товара
+            detailsView.innerHTML = `
+                <button class="back-button" onclick="hideProductDetails()">Назад</button>
+                <div class="product-details">
+                    <img id="detailsImage" src="" alt="Фото товара">
+                    <h2 id="detailsName"></h2>
+                    <p id="detailsDescription"></p>
+                    <div id="detailsPrice" class="price"></div>
+                    <div class="location">
+                        <h3>Местоположение</h3>
+                        <div id="detailsMap" class="product-details-map"></div>
+                    </div>
+                    <div class="reviews-section">
+                        <h3>Отзывы</h3>
+                        <div class="review-form">
+                            <textarea id="reviewText" placeholder="Напишите ваш отзыв..."></textarea>
+                            <button class="button" onclick="addReview()">Оставить отзыв</button>
+                        </div>
+                        <div id="reviewsList" class="review-list"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Получаем ссылки на элементы после их создания
             const detailsImage = document.getElementById('detailsImage');
             const detailsName = document.getElementById('detailsName');
             const detailsDescription = document.getElementById('detailsDescription');
             const detailsPrice = document.getElementById('detailsPrice');
             const detailsMap = document.getElementById('detailsMap');
-            
-            console.log('[showProductDetails] mainContent element:', mainContent);
-            console.log('[showProductDetails] detailsView element:', detailsView);
-            console.log('[showProductDetails] detailsImage element:', detailsImage);
-            console.log('[showProductDetails] detailsName element:', detailsName);
-            console.log('[showProductDetails] detailsDescription element:', detailsDescription);
-            console.log('[showProductDetails] detailsPrice element:', detailsPrice);
-            console.log('[showProductDetails] detailsMap element:', detailsMap);
-
-            if (!mainContent || !detailsView || !detailsImage || !detailsName || !detailsDescription || !detailsPrice || !detailsMap) {
-                console.error('[showProductDetails] One or more crucial HTML elements for details view are missing.');
-                alert('Ошибка: Не удалось отобразить детали товара (отсутствуют HTML элементы).');
-                return;
-            }
+            const locationSection = detailsView.querySelector('.location');
             
             try {
-                // Установка изображения
+                // Устанавливаем изображение
                 if (product.image_url && product.image_url.startsWith('http')) {
                     detailsImage.src = product.image_url;
                     detailsImage.alt = product.name || 'Фото товара';
@@ -1078,23 +1565,63 @@
                     this.alt = 'Ошибка загрузки фото';
                 };
 
+                // Устанавливаем основную информацию
                 detailsName.textContent = product.name || 'Без названия';
                 detailsDescription.textContent = product.description || 'Описание отсутствует.';
                 detailsPrice.textContent = `💰 ${product.price || 0} руб.`;
 
-                // Инициализация карты
-                if (product.latitude && product.longitude) {
-                    // Очищаем контейнер карты перед добавлением новой
-                    detailsMap.innerHTML = '';
+                // Обновляем отображение местоположения
+                if (product.address) {
+                    locationSection.innerHTML = `
+                        <h3>Местоположение</h3>
+                        <p style="margin-bottom: 15px; color: var(--tg-theme-text-color);">${product.address}</p>
+                        <div id="detailsMap" class="product-details-map"></div>
+                    `;
                     
+                    // Инициализация карты с геокодированием
                     ymaps.ready(function() {
-                        const map = new ymaps.Map(detailsMap, {
-                            center: [product.latitude, product.longitude],
+                        ymaps.geocode(product.address, {
+                            results: 1
+                        }).then(function(res) {
+                            const firstGeoObject = res.geoObjects.get(0);
+                            if (firstGeoObject) {
+                                const coordinates = firstGeoObject.geometry.getCoordinates();
+                                const map = new ymaps.Map('detailsMap', {
+                                    center: coordinates,
+                                    zoom: 15
+                                });
+
+                                const placemark = new ymaps.Placemark(coordinates, {
+                                    balloonContent: product.address
+                                }, {
+                                    preset: 'islands#redDotIcon'
+                                });
+
+                                map.geoObjects.add(placemark);
+                            } else {
+                                detailsMap.innerHTML = '<div style="text-align: center; padding-top: 80px; color: #999;">Не удалось определить координаты по адресу</div>';
+                            }
+                        }).catch(function(error) {
+                            console.error('Geocoding error:', error);
+                            detailsMap.innerHTML = '<div style="text-align: center; padding-top: 80px; color: #999;">Ошибка при определении местоположения</div>';
+                        });
+                    });
+                } else if (product.latitude && product.longitude) {
+                    locationSection.innerHTML = `
+                        <h3>Местоположение</h3>
+                        <div id="detailsMap" class="product-details-map"></div>
+                    `;
+                    
+                    // Инициализация карты с координатами
+                    ymaps.ready(function() {
+                        const coordinates = [product.latitude, product.longitude];
+                        const map = new ymaps.Map('detailsMap', {
+                            center: coordinates,
                             zoom: 15
                         });
 
-                        const placemark = new ymaps.Placemark([product.latitude, product.longitude], {
-                            balloonContent: product.name || 'Местоположение товара'
+                        const placemark = new ymaps.Placemark(coordinates, {
+                            balloonContent: 'Выбранное местоположение'
                         }, {
                             preset: 'islands#redDotIcon'
                         });
@@ -1102,30 +1629,18 @@
                         map.geoObjects.add(placemark);
                     });
                 } else {
-                    detailsMap.innerHTML = '<div style="text-align: center; padding-top: 80px; color: #999;">Местоположение не указано</div>';
+                    locationSection.innerHTML = '<h3>Местоположение</h3><p style="text-align: center; color: var(--tg-theme-hint-color);">Местоположение не указано</p>';
                 }
 
-                console.log('[showProductDetails] Product details (image, name, description, price) set in HTML elements.');
+                // Показываем детали товара
+                mainContent.style.display = 'none';
+                detailsView.classList.add('active');
+                
             } catch (error) {
-                console.error('[showProductDetails] Error setting product details text content:', error);
+                console.error('[showProductDetails] Error setting product details:', error);
                 alert('Ошибка: Произошла ошибка при заполнении данных о товаре.');
                 return;
             }
-            
-            mainContent.style.display = 'none';
-            console.log('[showProductDetails] Main content hidden (style.display = \'none\').');
-
-            detailsView.classList.add('active'); 
-            console.log('[showProductDetails] Details view made visible by adding \'active\' class.');
-            
-            const productDetailsContent = detailsView.querySelector('.product-details');
-            if (productDetailsContent) {
-                 productDetailsContent.style.display = 'block';
-                 console.log('[showProductDetails] Inner .product-details content block ensured to be visible.');
-            } else {
-                 console.warn('[showProductDetails] .product-details inner container not found within #productDetailsView');
-            }
-            console.log('[showProductDetails] Product details display attempt finished.');
 
             // Загружаем отзывы для товара
             loadReviews(id);
@@ -1243,9 +1758,17 @@
                 isAdmin = true;
                 document.getElementById('adminLoginForm').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
-                loadCategories();
-                loadProducts();
-                loadPendingProducts(); // Добавляем загрузку товаров на модерацию
+                
+                console.log('Admin logged in successfully');
+                
+                // Сначала выполняем миграцию, затем остальные действия
+                migrateCategories().then(() => {
+                    console.log('Categories migration completed');
+                    fixCategoryIds();
+                    loadCategories();
+                    loadProducts();
+                    loadPendingProducts();
+                });
             } else {
                 tg.showPopup({
                     title: 'Ошибка',
@@ -1269,17 +1792,25 @@
                 return;
             }
 
+            // Получаем текущий список категорий для определения следующего ID
             const categoriesRef = database.ref('categories');
-            categoriesRef.push({
-                name: name,
-                created_at: new Date().toISOString()
-            }).then(() => {
-                document.getElementById('categoryName').value = '';
-                loadCategories();
-                tg.showPopup({
-                    title: 'Успех',
-                    message: 'Категория добавлена',
-                    buttons: [{type: 'ok'}]
+            categoriesRef.once('value').then((snapshot) => {
+                const categories = snapshot.val() || {};
+                const nextId = Object.keys(categories).length + 1;
+
+                // Создаем новую категорию с последовательным ID
+                categoriesRef.push({
+                    name: name,
+                    id: nextId,
+                    created_at: new Date().toISOString()
+                }).then(() => {
+                    document.getElementById('categoryName').value = '';
+                    loadCategories();
+                    tg.showPopup({
+                        title: 'Успех',
+                        message: 'Категория добавлена',
+                        buttons: [{type: 'ok'}]
+                    });
                 });
             });
         }
@@ -1293,25 +1824,35 @@
                 const categorySelect = document.getElementById('productCategory');
                 
                 // Очищаем списки
-                categoriesList.innerHTML = '';
+                categoriesList.innerHTML = '<h3>Существующие категории</h3>';
                 categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
                 
+                // Преобразуем объект в массив и сортируем по ID
+                const sortedCategories = Object.entries(categories)
+                    .filter(([, category]) => category && category.id) // Фильтруем категории без ID
+                    .sort(([, a], [, b]) => a.id - b.id);
+                
                 // Добавляем категории в список админ-панели
-                Object.entries(categories).forEach(([id, category]) => {
+                sortedCategories.forEach(([firebaseId, category]) => {
+                    if (!category.id) return; // Пропускаем категории без ID
+                    
                     const card = document.createElement('div');
                     card.className = 'category-card';
                     card.innerHTML = `
-                        <h3>${category.name}</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3>${category.name}</h3>
+                            <span style="color: var(--tg-theme-hint-color); font-size: 14px;">ID: ${category.id}</span>
+                        </div>
                         <div class="category-actions">
-                            <button class="edit-button" onclick="editCategory('${id}')">Редактировать</button>
-                            <button class="delete-button" onclick="deleteCategory('${id}')">Удалить</button>
+                            <button class="edit-button" onclick="editCategory('${firebaseId}')">Редактировать</button>
+                            <button class="delete-button" onclick="deleteCategory('${firebaseId}')">Удалить</button>
                         </div>
                     `;
                     categoriesList.appendChild(card);
                     
                     // Добавляем категорию в select при добавлении товара
                     const option = document.createElement('option');
-                    option.value = id;
+                    option.value = category.id;
                     option.textContent = category.name;
                     categorySelect.appendChild(option);
                 });
@@ -1321,35 +1862,71 @@
             });
         }
 
-        // Добавляем функцию обновления фильтров категорий
+        // Обновляем функцию обновления фильтров категорий
         function updateCategoryFilters(categories) {
             const categoryFilter = document.getElementById('categoryFilter');
             if (!categoryFilter) return;
 
+            // Фильтруем и сортируем категории
+            const sortedCategories = Object.entries(categories)
+                .filter(([, category]) => category && category.id)
+                .sort(([, a], [, b]) => a.id - b.id);
+
             categoryFilter.innerHTML = `
                 <button class="active" data-category="">Все товары</button>
-                ${Object.entries(categories).map(([id, category]) => `
-                    <button data-category="${id}">${category.name}</button>
+                ${sortedCategories.map(([firebaseId, category]) => `
+                    <button data-category="${category.id}">${category.name}</button>
                 `).join('')}
             `;
 
             // Обновляем обработчик клика
             categoryFilter.addEventListener('click', (e) => {
                 if (e.target.tagName === 'BUTTON') {
+                    // Убираем активный класс у всех кнопок
                     categoryFilter.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                    // Добавляем активный класс выбранной кнопке
                     e.target.classList.add('active');
-                    currentCategory = e.target.dataset.category;
-                    loadProducts(); // Перезагружаем товары с новыми фильтрами
+                    
+                    // Получаем ID категории из data-атрибута
+                    const categoryId = e.target.dataset.category;
+                    console.log('Selected category ID:', categoryId);
+                    
+                    // Обновляем текущую категорию
+                    currentCategory = categoryId;
+                    console.log('Updated currentCategory:', currentCategory);
+                    
+                    // Перезагружаем товары
+                    loadProducts();
                 }
             });
         }
 
-        // Функция удаления категории
-        function deleteCategory(id) {
+        // Добавляем функцию для исправления существующих категорий без ID
+        function fixCategoryIds() {
+            if (!isAdmin) return;
+            
+            const categoriesRef = database.ref('categories');
+            categoriesRef.once('value').then((snapshot) => {
+                const categories = snapshot.val() || {};
+                let id = 1;
+                
+                // Обновляем ID для всех категорий
+                Object.entries(categories).forEach(([firebaseId, category]) => {
+                    if (!category.id) {
+                        categoriesRef.child(firebaseId).update({
+                            id: id++
+                        });
+                    }
+                });
+            });
+        }
+
+        // Обновляем функцию удаления категории
+        function deleteCategory(firebaseId) {
             if (!isAdmin) return;
             
             if (confirm('Вы уверены, что хотите удалить эту категорию?')) {
-                database.ref(`categories/${id}`).remove().then(() => {
+                database.ref(`categories/${firebaseId}`).remove().then(() => {
                     loadCategories();
                     tg.showPopup({
                         title: 'Успех',
@@ -1360,13 +1937,13 @@
             }
         }
 
-        // Функция редактирования категории
-        function editCategory(id) {
+        // Обновляем функцию редактирования категории
+        function editCategory(firebaseId) {
             if (!isAdmin) return;
             
             const newName = prompt('Введите новое название категории:');
             if (newName) {
-                database.ref(`categories/${id}`).update({
+                database.ref(`categories/${firebaseId}`).update({
                     name: newName
                 }).then(() => {
                     loadCategories();
@@ -1381,39 +1958,61 @@
 
         // Обновляем функцию добавления товара
         function addProduct() {
-            const product = {
-                name: document.getElementById('productName').value,
-                description: document.getElementById('productDescription').value,
-                category: document.getElementById('productCategory').value,
-                price: parseFloat(document.getElementById('productPrice').value),
-                image_url: document.getElementById('productImageUrl').value,
-                latitude: parseFloat(document.getElementById('latitude').value),
-                longitude: parseFloat(document.getElementById('longitude').value),
-                user_id: user?.id || 'unknown',
-                user_name: user?.first_name || 'Неизвестно',
-                user_username: user?.username || '',
-                created_at: new Date().toISOString(),
-                status: 'pending'
-            };
+            // Проверяем обязательные поля
+            const name = document.getElementById('productName').value.trim();
+            const description = document.getElementById('productDescription').value.trim();
+            const category = document.getElementById('productCategory').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
 
-            if (!product.category) {
+            if (!name || !category || isNaN(price) || price <= 0) {
                 tg.showPopup({
                     title: 'Ошибка',
-                    message: 'Выберите категорию товара',
+                    message: 'Пожалуйста, заполните все обязательные поля (название, категория, цена)',
                     buttons: [{type: 'ok'}]
                 });
                 return;
             }
 
+            const product = {
+                name: name,
+                description: description,
+                category: category,
+                price: price,
+                image_url: document.getElementById('productImageUrl').value.trim(),
+                latitude: parseFloat(document.getElementById('latitude').value) || 62.0355,
+                longitude: parseFloat(document.getElementById('longitude').value) || 129.6755,
+                store_id: document.getElementById('popularStore').value,
+                user_id: user?.id || 'unknown',
+                user_name: user?.first_name || 'Неизвестно',
+                user_username: user?.username || '',
+                created_at: new Date().toISOString(),
+                status: 'pending' // Явно указываем статус pending
+            };
+
+            console.log('Adding new product with data:', product);
+
             // Добавляем товар в Firebase
             const productsRef = database.ref('products');
-            productsRef.push(product).then(() => {
+            const newProductRef = productsRef.push();
+            
+            // Сначала создаем объект с ID
+            const productWithId = {
+                ...product,
+                id: newProductRef.key
+            };
+
+            // Сохраняем товар
+            newProductRef.set(productWithId).then(() => {
+                console.log('Product added successfully with key:', newProductRef.key);
+                console.log('Product data saved:', productWithId);
+                
                 // Очищаем форму
                 document.getElementById('productName').value = '';
                 document.getElementById('productDescription').value = '';
                 document.getElementById('productCategory').value = '';
                 document.getElementById('productPrice').value = '';
                 document.getElementById('productImageUrl').value = '';
+                document.getElementById('popularStore').value = '';
                 
                 // Скрываем форму и восстанавливаем отображение сетки товаров
                 document.getElementById('addProductForm').classList.remove('active');
@@ -1426,7 +2025,16 @@
                     message: 'Товар отправлен на модерацию!',
                     buttons: [{type: 'ok'}]
                 });
+
+                // Если пользователь админ, обновляем список товаров на модерацию
+                if (isAdmin) {
+                    console.log('Admin is logged in, updating pending products list');
+                    loadPendingProducts();
+                } else {
+                    console.log('User is not admin, skipping pending products update');
+                }
             }).catch((error) => {
+                console.error('Error adding product:', error);
                 tg.showPopup({
                     title: 'Ошибка',
                     message: 'Не удалось добавить товар: ' + error.message,
@@ -1435,60 +2043,18 @@
             });
         }
 
-        // Функция для загрузки товаров на модерацию
-        function loadPendingProducts() {
-            const productsRef = database.ref('products');
-            productsRef.on('value', (snapshot) => {
-                const products = snapshot.val() || {};
-                const pendingProductsContainer = document.getElementById('pendingProducts');
-                pendingProductsContainer.innerHTML = '';
-
-                Object.entries(products)
-                    .filter(([_, product]) => product.status === 'pending')
-                    .forEach(([id, product]) => {
-                        const card = document.createElement('div');
-                        card.className = 'pending-product-card';
-                        card.innerHTML = `
-                            <h3>${product.name || 'Без названия'}</h3>
-                            <div class="pending-product-info">
-                                <p>Описание: ${product.description || 'Нет описания'}</p>
-                                <p>Цена: ${product.price || 0} руб.</p>
-                                <p>Категория: ${getCategoryName(product.category)}</p>
-                                <p>Добавил: ${product.user_name || 'Неизвестно'} ${product.user_username ? `(@${product.user_username})` : ''}</p>
-                                <p>Дата: ${new Date(product.created_at).toLocaleString('ru-RU')}</p>
-                            </div>
-                            <div class="pending-product-actions">
-                                <button class="button approve-button" onclick="moderateProduct('${id}', 'approved')">Одобрить</button>
-                                <button class="button reject-button" onclick="moderateProduct('${id}', 'rejected')">Отклонить</button>
-                            </div>
-                        `;
-                        pendingProductsContainer.appendChild(card);
-                    });
-            });
-        }
-
-        // Функция модерации товара
-        function moderateProduct(id, status) {
-            if (!isAdmin) return;
-
-            database.ref(`products/${id}`).update({
-                status: status
-            }).then(() => {
-                tg.showPopup({
-                    title: 'Успех',
-                    message: status === 'approved' ? 'Товар одобрен' : 'Товар отклонен',
-                    buttons: [{type: 'ok'}]
-                });
-                loadPendingProducts();
-                loadProducts();
-            });
-        }
-
         // Обновляем функцию загрузки товаров
         function loadProducts() {
             console.log('Loading products from Firebase');
             const productsRef = database.ref('products');
-            productsRef.on('value', (snapshot) => {
+            
+            // Удаляем предыдущий слушатель, если он существует
+            if (window.productsListener) {
+                productsRef.off('value', window.productsListener);
+            }
+            
+            // Создаем новый слушатель
+            window.productsListener = (snapshot) => {
                 const products = snapshot.val() || {};
                 console.log('Products loaded:', products);
                 
@@ -1500,6 +2066,104 @@
                 
                 productGrid.innerHTML = '';
                 renderProducts(products);
+            };
+            
+            // Устанавливаем слушатель
+            productsRef.on('value', window.productsListener);
+        }
+
+        // Обновляем функцию загрузки товаров на модерацию
+        function loadPendingProducts() {
+            console.log('Loading pending products...');
+            const productsRef = database.ref('products');
+            
+            // Удаляем предыдущий слушатель, если он существует
+            if (window.pendingProductsListener) {
+                productsRef.off('value', window.pendingProductsListener);
+            }
+            
+            // Создаем новый слушатель
+            window.pendingProductsListener = (snapshot) => {
+                const products = snapshot.val() || {};
+                console.log('All products loaded for moderation:', products);
+                
+                const pendingProductsContainer = document.getElementById('pendingProducts');
+                if (!pendingProductsContainer) {
+                    console.error('Pending products container not found');
+                    return;
+                }
+                
+                pendingProductsContainer.innerHTML = '';
+
+                // Преобразуем объект в массив и фильтруем товары на модерацию
+                const pendingProducts = Object.entries(products)
+                    .filter(([id, product]) => {
+                        const isPending = product.status === 'pending';
+                        console.log('Checking product:', {
+                            id: id,
+                            name: product.name,
+                            status: product.status,
+                            created_at: product.created_at,
+                            isPending: isPending
+                        });
+                        return isPending;
+                    });
+
+                console.log('Filtered pending products:', pendingProducts);
+
+                if (pendingProducts.length === 0) {
+                    pendingProductsContainer.innerHTML = '<div class="no-pending-products">Нет товаров на модерацию</div>';
+                    return;
+                }
+
+                pendingProducts.forEach(([id, product]) => {
+                    const card = document.createElement('div');
+                    card.className = 'pending-product-card';
+                    card.innerHTML = `
+                        <h3>${product.name || 'Без названия'}</h3>
+                        <div class="pending-product-info">
+                            <p>Описание: ${product.description || 'Нет описания'}</p>
+                            <p>Цена: ${product.price || 0} руб.</p>
+                            <p>Категория: ${getCategoryName(product.category)}</p>
+                            <p>Добавил: ${product.user_name || 'Неизвестно'} ${product.user_username ? `(@${product.user_username})` : ''}</p>
+                            <p>Дата: ${new Date(product.created_at).toLocaleString('ru-RU')}</p>
+                        </div>
+                        <div class="pending-product-actions">
+                            <button class="button approve-button" onclick="moderateProduct('${id}', 'approved')">Одобрить</button>
+                            <button class="button reject-button" onclick="moderateProduct('${id}', 'rejected')">Отклонить</button>
+                        </div>
+                    `;
+                    pendingProductsContainer.appendChild(card);
+                });
+            };
+            
+            // Устанавливаем слушатель
+            productsRef.on('value', window.pendingProductsListener);
+        }
+
+        // Обновляем функцию модерации товара
+        function moderateProduct(id, status) {
+            if (!isAdmin) return;
+
+            console.log('Moderating product:', { id, status });
+
+            database.ref(`products/${id}`).update({
+                status: status
+            }).then(() => {
+                console.log('Product moderation successful:', { id, status });
+                tg.showPopup({
+                    title: 'Успех',
+                    message: status === 'approved' ? 'Товар одобрен' : 'Товар отклонен',
+                    buttons: [{type: 'ok'}]
+                });
+                loadPendingProducts(); // Обновляем список товаров на модерацию
+            }).catch((error) => {
+                console.error('Error moderating product:', error);
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Не удалось изменить статус товара: ' + error.message,
+                    buttons: [{type: 'ok'}]
+                });
             });
         }
 
@@ -1554,6 +2218,8 @@
             console.log('DOM loaded, initializing...');
             loadCategories();
             loadProducts();
+            loadStores();
+            initStoreMap();
         });
 
         // Функция для отображения формы добавления товара
@@ -1565,6 +2231,12 @@
             document.getElementById('addProductForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
             try {
                  if (typeof ymaps !== 'undefined' && ymaps.ready) {
+                    // Очищаем старую карту, если она существует
+                    if (window.productMap) {
+                        window.productMap.destroy();
+                        window.productMap = null;
+                        window.productPlacemark = null;
+                    }
                     initMap(); // Инициализируем карту только если ymaps загружен
                  } else {
                     console.warn('[showAddProductForm] Yandex Maps API not ready yet.')
@@ -1579,40 +2251,206 @@
             document.getElementById('addProductForm').classList.remove('active');
             document.getElementById('productGrid').style.display = 'grid'; // Показываем сетку товаров обратно
             document.querySelector('.category-filter').style.display = 'flex'; // Показываем фильтр категорий обратно
+            
+            // Очищаем карту при скрытии формы
+            if (window.productMap) {
+                window.productMap.destroy();
+                window.productMap = null;
+                window.productPlacemark = null;
+            }
         }
 
         // Инициализация карты
         function initMap() {
             ymaps.ready(function() {
+                // Очищаем контейнер карты
+                const mapContainer = document.getElementById('map');
+                mapContainer.innerHTML = '';
+                
                 const map = new ymaps.Map('map', {
                     center: [62.0355, 129.6755],
                     zoom: 12
                 });
 
-                let placemark = new ymaps.Placemark([62.0355, 129.6755], {}, {
+                // Сохраняем ссылки на карту и маркер в глобальных переменных
+                window.productMap = map;
+                window.productPlacemark = new ymaps.Placemark([62.0355, 129.6755], {}, {
                     draggable: false // Отключаем перетаскивание маркера
                 });
 
-                map.geoObjects.add(placemark);
+                map.geoObjects.add(window.productPlacemark);
 
                 // Обработчик клика по карте
                 map.events.add('click', function(e) {
                     const coords = e.get('coords');
                     
                     // Удаляем старый маркер
-                    map.geoObjects.remove(placemark);
+                    map.geoObjects.remove(window.productPlacemark);
                     
                     // Создаем новый маркер в точке клика
-                    placemark = new ymaps.Placemark(coords, {}, {
+                    window.productPlacemark = new ymaps.Placemark(coords, {}, {
                         draggable: false
                     });
                     
-                    map.geoObjects.add(placemark);
+                    map.geoObjects.add(window.productPlacemark);
                     
                     // Обновляем значения в скрытых полях
                     document.getElementById('latitude').value = coords[0];
                     document.getElementById('longitude').value = coords[1];
+
+                    // Сбрасываем выбранный магазин, так как пользователь выбрал новое местоположение
+                    document.getElementById('popularStore').value = '';
                 });
+            });
+        }
+
+        // Инициализация карты для магазинов
+        function initStoreMap() {
+            ymaps.ready(function() {
+                const map = new ymaps.Map('storeMap', {
+                    center: [62.0355, 129.6755],
+                    zoom: 12
+                });
+
+                let placemark = new ymaps.Placemark([62.0355, 129.6755], {}, {
+                    draggable: false
+                });
+
+                map.geoObjects.add(placemark);
+
+                map.events.add('click', function(e) {
+                    const coords = e.get('coords');
+                    map.geoObjects.remove(placemark);
+                    placemark = new ymaps.Placemark(coords, {}, {
+                        draggable: false
+                    });
+                    map.geoObjects.add(placemark);
+                    document.getElementById('storeLatitude').value = coords[0];
+                    document.getElementById('storeLongitude').value = coords[1];
+                });
+            });
+        }
+
+        // Функция добавления магазина
+        function addStore() {
+            if (!isAdmin) return;
+
+            const store = {
+                name: document.getElementById('storeName').value,
+                latitude: parseFloat(document.getElementById('storeLatitude').value),
+                longitude: parseFloat(document.getElementById('storeLongitude').value),
+                created_at: new Date().toISOString()
+            };
+
+            if (!store.name) {
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Введите название магазина',
+                    buttons: [{type: 'ok'}]
+                });
+                return;
+            }
+
+            const storesRef = database.ref('stores');
+            storesRef.push(store).then(() => {
+                document.getElementById('storeName').value = '';
+                loadStores();
+                tg.showPopup({
+                    title: 'Успех',
+                    message: 'Магазин добавлен',
+                    buttons: [{type: 'ok'}]
+                });
+            });
+        }
+
+        // Функция загрузки магазинов
+        function loadStores() {
+            const storesRef = database.ref('stores');
+            storesRef.on('value', (snapshot) => {
+                const stores = snapshot.val() || {};
+                const storesList = document.getElementById('storesList');
+                const storeSelect = document.getElementById('popularStore');
+                
+                // Очищаем списки
+                storesList.innerHTML = '';
+                storeSelect.innerHTML = '<option value="">Выберите магазин</option>';
+                
+                // Добавляем магазины в список админ-панели
+                Object.entries(stores).forEach(([id, store]) => {
+                    const card = document.createElement('div');
+                    card.className = 'store-card';
+                    card.innerHTML = `
+                        <h3>${store.name}</h3>
+                        <div class="store-actions">
+                            <button class="delete-button" onclick="deleteStore('${id}')">Удалить</button>
+                        </div>
+                    `;
+                    storesList.appendChild(card);
+                    
+                    // Добавляем магазин в select при добавлении товара
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = store.name;
+                    option.dataset.latitude = store.latitude;
+                    option.dataset.longitude = store.longitude;
+                    storeSelect.appendChild(option);
+                });
+
+                // Добавляем обработчик изменения выбранного магазина
+                storeSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.value) {
+                        const latitude = parseFloat(selectedOption.dataset.latitude);
+                        const longitude = parseFloat(selectedOption.dataset.longitude);
+                        
+                        // Обновляем значения в скрытых полях
+                        document.getElementById('latitude').value = latitude;
+                        document.getElementById('longitude').value = longitude;
+                        
+                        // Обновляем маркер на карте
+                        if (window.productMap && window.productPlacemark) {
+                            window.productMap.geoObjects.remove(window.productPlacemark);
+                            window.productPlacemark = new ymaps.Placemark([latitude, longitude], {}, {
+                                draggable: false
+                            });
+                            window.productMap.geoObjects.add(window.productPlacemark);
+                            window.productMap.setCenter([latitude, longitude], 15);
+                        }
+                    } else {
+                        // Если выбрана опция "Выберите магазин", возвращаем карту к начальному положению
+                        if (window.productMap && window.productPlacemark) {
+                            const initialCoords = [62.0355, 129.6755];
+                            window.productMap.geoObjects.remove(window.productPlacemark);
+                            window.productPlacemark = new ymaps.Placemark(initialCoords, {}, {
+                                draggable: false
+                            });
+                            window.productMap.geoObjects.add(window.productPlacemark);
+                            window.productMap.setCenter(initialCoords, 12);
+                            
+                            // Сбрасываем значения в скрытых полях
+                            document.getElementById('latitude').value = initialCoords[0];
+                            document.getElementById('longitude').value = initialCoords[1];
+                        }
+                    }
+                });
+            });
+        }
+
+        // Функция удаления магазина
+        function deleteStore(id) {
+            if (!isAdmin) return;
+            
+            tg.showConfirm('Вы уверены, что хотите удалить этот магазин?', function(confirmed) {
+                if (confirmed) {
+                    database.ref(`stores/${id}`).remove()
+                        .then(() => {
+                            tg.showPopup({
+                                title: 'Успех',
+                                message: 'Магазин удален',
+                                buttons: [{type: 'ok'}]
+                            });
+                        });
+                }
             });
         }
 
@@ -1653,6 +2491,192 @@
                     console.log('[deleteReview] Deletion cancelled by user.');
                 }
             });
+        }
+
+        // Функция для скачивания шаблона Excel
+        function downloadExcelTemplate() {
+            const template = [
+                {
+                    name: 'Название товара',
+                    description: 'Описание товара',
+                    price: '1000',
+                    category: 'ID категории',
+                    image_url: 'https://example.com/image.jpg',
+                    address: 'ул. Ленина, 1'
+                }
+            ];
+
+            const ws = XLSX.utils.json_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Товары");
+            XLSX.writeFile(wb, "template_products.xlsx");
+        }
+
+        // Функция для обработки загрузки Excel файла
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Показываем имя файла
+            const fileNameElement = document.getElementById('fileName');
+            fileNameElement.textContent = `Выбран файл: ${file.name}`;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const products = XLSX.utils.sheet_to_json(firstSheet);
+
+                    if (products.length === 0) {
+                        tg.showPopup({
+                            title: 'Ошибка',
+                            message: 'Файл не содержит данных',
+                            buttons: [{type: 'ok'}]
+                        });
+                        fileNameElement.textContent = ''; // Очищаем имя файла при ошибке
+                        return;
+                    }
+
+                    // Проверяем обязательные поля
+                    const requiredFields = ['name', 'price', 'category'];
+                    const missingFields = products.some(product => 
+                        requiredFields.some(field => !product[field])
+                    );
+
+                    if (missingFields) {
+                        tg.showPopup({
+                            title: 'Ошибка',
+                            message: 'В файле отсутствуют обязательные поля (name, price, category)',
+                            buttons: [{type: 'ok'}]
+                        });
+                        fileNameElement.textContent = ''; // Очищаем имя файла при ошибке
+                        return;
+                    }
+
+                    // Загружаем товары в базу данных
+                    const productsRef = database.ref('products');
+                    let successCount = 0;
+                    let errorCount = 0;
+
+                    products.forEach(product => {
+                        const productData = {
+                            name: product.name,
+                            description: product.description || '',
+                            price: parseFloat(product.price),
+                            category: product.category,
+                            image_url: product.image_url || '',
+                            address: product.address || '',
+                            created_at: new Date().toISOString(),
+                            status: 'pending'
+                        };
+
+                        productsRef.push(productData)
+                            .then(() => successCount++)
+                            .catch(() => errorCount++)
+                            .finally(() => {
+                                if (successCount + errorCount === products.length) {
+                                    tg.showPopup({
+                                        title: 'Импорт завершен',
+                                        message: `Успешно импортировано: ${successCount}\nОшибок: ${errorCount}`,
+                                        buttons: [{type: 'ok'}]
+                                    });
+                                    // Очищаем поле выбора файла и имя файла
+                                    event.target.value = '';
+                                    fileNameElement.textContent = '';
+                                    // Перезагружаем список товаров
+                                    loadProducts();
+                                    loadPendingProducts();
+                                }
+                            });
+                    });
+                } catch (error) {
+                    tg.showPopup({
+                        title: 'Ошибка',
+                        message: 'Не удалось прочитать файл: ' + error.message,
+                        buttons: [{type: 'ok'}]
+                    });
+                    fileNameElement.textContent = ''; // Очищаем имя файла при ошибке
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Обновляем функцию миграции категорий
+        function migrateCategories() {
+            if (!isAdmin) return;
+            
+            console.log('Starting categories migration...');
+            
+            const productsRef = database.ref('products');
+            const categoriesRef = database.ref('categories');
+            
+            // Получаем все категории
+            categoriesRef.once('value').then((categoriesSnapshot) => {
+                const categories = categoriesSnapshot.val() || {};
+                console.log('Loaded categories:', categories);
+                
+                // Находим категорию с ID 1
+                let targetCategoryId = null;
+                Object.entries(categories).forEach(([firebaseId, category]) => {
+                    if (category.id === 1) {
+                        targetCategoryId = firebaseId;
+                    }
+                });
+                
+                if (!targetCategoryId) {
+                    console.error('Category with ID 1 not found');
+                    return;
+                }
+                
+                console.log('Target category Firebase ID:', targetCategoryId);
+                
+                // Получаем все товары
+                productsRef.once('value').then((productsSnapshot) => {
+                    const products = productsSnapshot.val() || {};
+                    console.log('Loaded products:', products);
+                    
+                    const updates = {};
+                    let updateCount = 0;
+                    
+                    // Обновляем категории в товарах
+                    Object.entries(products).forEach(([productId, product]) => {
+                        // Если категория товара совпадает со старым ID категории
+                        if (product.category === targetCategoryId) {
+                            console.log(`Updating product ${productId}:`, {
+                                oldCategory: product.category,
+                                newCategory: 1
+                            });
+                            updates[`${productId}/category`] = 1;
+                            updateCount++;
+                        }
+                    });
+                    
+                    console.log(`Found ${updateCount} products to update`);
+                    
+                    // Применяем обновления
+                    if (Object.keys(updates).length > 0) {
+                        console.log('Applying updates:', updates);
+                        productsRef.update(updates).then(() => {
+                            console.log('Categories migration completed successfully');
+                            loadProducts(); // Перезагружаем товары
+                        }).catch(error => {
+                            console.error('Error during migration:', error);
+                        });
+                    } else {
+                        console.log('No products need to be updated');
+                    }
+                });
+            });
+        }
+
+        // Добавляем функцию для проверки статуса модерации
+        function checkModerationStatus() {
+            console.log('Checking moderation status...');
+            console.log('Is admin:', isAdmin);
+            console.log('Admin panel visible:', document.getElementById('adminPanel').style.display);
+            console.log('Pending products container exists:', !!document.getElementById('pendingProducts'));
         }
     </script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=b4baee95-a360-4970-8bbf-a5cefaf3e093&lang=ru_RU"></script>
