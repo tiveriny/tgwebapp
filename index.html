@@ -173,6 +173,25 @@
             position: relative;
             z-index: 1;
             perspective: 1000px;
+            min-height: 200px;
+        }
+
+        .products-grid::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--tg-theme-bg-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .products-grid.sorting::after {
+            opacity: 0.1;
         }
 
         .product-card {
@@ -188,6 +207,13 @@
             transform: translateY(0) scale(1);
             border: 1px solid rgba(0, 0, 0, 0.1);
             position: relative;
+        }
+
+        .product-card.sorting {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.5;
+            transform: translateY(10px) scale(0.98);
+            pointer-events: none;
         }
 
         .product-card::before {
@@ -1139,7 +1165,7 @@
     </style>
 </head>
 <body>
-    <div class="version">v0.15</div>
+    <div class="version">v0.16</div>
     <div class="container">
         <div class="main-content">
             <div class="header">
@@ -1424,7 +1450,8 @@
             const productGrid = document.getElementById('productGrid');
             const cards = productGrid.querySelectorAll('.product-card');
             
-            // Добавляем класс sorting ко всем карточкам
+            // Добавляем классы для анимации
+            productGrid.classList.add('sorting');
             cards.forEach(card => card.classList.add('sorting'));
             
             // Обновляем текущую сортировку
@@ -1438,6 +1465,11 @@
             // Ждем завершения анимации и перезагружаем товары
             setTimeout(() => {
                 loadProducts();
+                // Удаляем классы анимации после загрузки
+                setTimeout(() => {
+                    productGrid.classList.remove('sorting');
+                    cards.forEach(card => card.classList.remove('sorting'));
+                }, 300);
             }, 300);
         }
 
