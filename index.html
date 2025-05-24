@@ -179,29 +179,40 @@
             background: var(--tg-theme-bg-color);
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
             will-change: transform, opacity;
             opacity: 1;
             transform: translateY(0) scale(1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        .product-card.sorting {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0.5;
-            transform: translateY(10px) scale(0.98);
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
         }
 
         .product-card:hover {
             transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            border-color: var(--tg-theme-button-color);
         }
 
         .product-info {
             padding: 20px;
             transition: all 0.3s ease;
+            background: var(--tg-theme-bg-color);
+            border-radius: 16px;
         }
 
         .product-name {
@@ -210,6 +221,8 @@
             margin-bottom: 10px;
             color: var(--tg-theme-text-color);
             transition: color 0.3s ease;
+            border-bottom: 2px solid var(--tg-theme-button-color);
+            padding-bottom: 8px;
         }
 
         .product-description {
@@ -218,6 +231,9 @@
             font-size: 15px;
             line-height: 1.5;
             transition: color 0.3s ease;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 10px;
+            border-radius: 8px;
         }
 
         .product-price {
@@ -225,6 +241,10 @@
             font-weight: 600;
             color: var(--tg-theme-button-color);
             transition: color 0.3s ease;
+            background: rgba(36, 129, 204, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
         }
 
         .map-container {
@@ -249,10 +269,11 @@
             background: var(--tg-theme-bg-color);
             border-radius: 16px;
             margin-bottom: 25px;
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
             position: relative;
             z-index: 2;
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .add-product-form.active {
@@ -282,19 +303,23 @@
             margin-bottom: 8px;
             color: var(--tg-theme-hint-color);
             font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input,
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
             border-radius: 12px;
             background: var(--tg-theme-bg-color);
             color: var(--tg-theme-text-color);
             font-size: 16px;
-            transition: all var(--transition-speed) ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .form-group input:focus,
@@ -303,6 +328,28 @@
             outline: none;
             border-color: var(--tg-theme-button-color);
             box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
+            background: var(--tg-theme-bg-color);
+        }
+
+        .form-group input:hover,
+        .form-group textarea:hover,
+        .form-group select:hover {
+            border-color: var(--tg-theme-button-color);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
         }
 
         .product-details-view {
@@ -544,13 +591,27 @@
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .pending-product-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+            border-color: var(--tg-theme-button-color);
+        }
+
+        .pending-product-info {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .pending-product-info p {
+            margin: 8px 0;
+            color: var(--tg-theme-text-color);
         }
 
         .pending-product-actions {
@@ -562,31 +623,33 @@
         .approve-button {
             background-color: #28a745;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             font-size: 14px;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .approve-button:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
         }
 
         .reject-button {
             background-color: #dc3545;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             font-size: 14px;
-            transition: all var(--transition-speed) ease;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
         }
 
+        .approve-button:hover,
         .reject-button:hover {
-            background-color: #c82333;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .product-details {
