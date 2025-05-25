@@ -273,6 +273,40 @@
             display: inline-block;
         }
 
+        .favorite-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--tg-theme-bg-color);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        .favorite-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .favorite-button.active {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        .favorite-button svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
         .map-container {
             width: 100%;
             height: 300px;
@@ -1162,10 +1196,36 @@
             font-size: 14px;
             color: var(--tg-theme-hint-color);
         }
+
+        .search-container {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid var(--tg-theme-hint-color);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color);
+            box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--tg-theme-hint-color);
+        }
     </style>
 </head>
 <body>
-    <div class="version">v0.16</div>
+    <div class="version">v0.17</div>
     <div class="container">
         <div class="main-content">
             <div class="header">
@@ -1174,6 +1234,7 @@
             
             <div class="tabs">
                 <div class="tab active" data-tab="products">Товары</div>
+                <div class="tab" data-tab="favorites">Избранное</div>
                 <div class="tab" data-tab="profile">Профиль</div>
                 <div class="tab" data-tab="categories">Управление</div>
             </div>
@@ -1181,6 +1242,9 @@
             <div class="tab-content-wrapper">
                 <div class="tab-content active" id="products">
                     <div class="products-section">
+                        <div class="search-container">
+                            <input type="text" id="searchInput" class="search-input" placeholder="Поиск товаров...">
+                        </div>
                         <button class="button add-product-button" onclick="showAddProductForm()">Добавить товар</button>
                         
                         <div id="addProductForm" class="add-product-form">
@@ -1240,6 +1304,15 @@
                         </div>
 
                         <div class="products-grid" id="productGrid"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="favorites">
+                    <div class="products-section">
+                        <div class="search-container">
+                            <input type="text" id="favoritesSearchInput" class="search-input" placeholder="Поиск в избранном...">
+                        </div>
+                        <div class="products-grid" id="favoritesGrid"></div>
                     </div>
                 </div>
 
@@ -1552,7 +1625,15 @@
                     card.className = 'product-card';
                     card.style.transitionDelay = `${index * 50}ms`;
                     
+                    // Проверяем, находится ли товар в избранном
+                    const isFavorite = checkIfFavorite(id);
+                    
                     card.innerHTML = `
+                        <button class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite('${id}', event)">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </button>
                         <div class="product-info">
                             <h3 class="product-name">${product.name || 'Без названия'}</h3>
                             <p class="product-description">${product.description || 'Нет описания'}</p>
@@ -1566,7 +1647,7 @@
                     `;
 
                     card.addEventListener('click', function(e) {
-                        if (!e.target.classList.contains('delete-button')) {
+                        if (!e.target.closest('.favorite-button') && !e.target.closest('.delete-button')) {
                             showProductDetails(id, product);
                         }
                     });
@@ -1584,6 +1665,159 @@
                 }
             });
         }
+
+        // Функция для проверки, находится ли товар в избранном
+        function checkIfFavorite(productId) {
+            if (!user) return false;
+            const favorites = JSON.parse(localStorage.getItem(`favorites_${user.id}`) || '[]');
+            return favorites.includes(productId);
+        }
+
+        // Функция для добавления/удаления товара из избранного
+        function toggleFavorite(productId, event) {
+            if (!user) {
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Необходимо войти в аккаунт для добавления в избранное',
+                    buttons: [{type: 'ok'}]
+                });
+                return;
+            }
+
+            event.stopPropagation();
+            const favorites = JSON.parse(localStorage.getItem(`favorites_${user.id}`) || '[]');
+            const index = favorites.indexOf(productId);
+            
+            if (index === -1) {
+                favorites.push(productId);
+                event.target.closest('.favorite-button').classList.add('active');
+            } else {
+                favorites.splice(index, 1);
+                event.target.closest('.favorite-button').classList.remove('active');
+            }
+            
+            localStorage.setItem(`favorites_${user.id}`, JSON.stringify(favorites));
+            loadFavorites(); // Обновляем список избранных товаров
+        }
+
+        // Функция для загрузки избранных товаров
+        function loadFavorites() {
+            if (!user) return;
+            
+            const favorites = JSON.parse(localStorage.getItem(`favorites_${user.id}`) || '[]');
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            const productsRef = database.ref('products');
+            
+            productsRef.once('value').then((snapshot) => {
+                const products = snapshot.val() || {};
+                const favoriteProducts = Object.entries(products)
+                    .filter(([id, product]) => favorites.includes(id) && (product.status === 'approved' || product.status === undefined));
+                
+                favoritesGrid.innerHTML = '';
+                
+                if (favoriteProducts.length === 0) {
+                    favoritesGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">
+                            В избранном пока нет товаров
+                        </div>
+                    `;
+                    return;
+                }
+                
+                favoriteProducts.forEach(([id, product], index) => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.style.transitionDelay = `${index * 50}ms`;
+                    
+                    card.innerHTML = `
+                        <button class="favorite-button active" onclick="toggleFavorite('${id}', event)">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </button>
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name || 'Без названия'}</h3>
+                            <p class="product-description">${product.description || 'Нет описания'}</p>
+                            <p class="product-price">💰 ${product.price || 0} руб.</p>
+                        </div>
+                    `;
+                    
+                    card.addEventListener('click', function(e) {
+                        if (!e.target.closest('.favorite-button')) {
+                            showProductDetails(id, product);
+                        }
+                    });
+                    
+                    favoritesGrid.appendChild(card);
+                });
+            });
+        }
+
+        // Добавляем обработчик поиска в избранном
+        document.getElementById('favoritesSearchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            const products = Array.from(favoritesGrid.children);
+            
+            products.forEach(product => {
+                const productName = product.querySelector('.product-name').textContent.toLowerCase();
+                const productDescription = product.querySelector('.product-description').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || productDescription.includes(searchTerm)) {
+                    product.style.display = '';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+            
+            // Показываем сообщение, если нет результатов
+            const visibleProducts = products.filter(p => p.style.display !== 'none');
+            if (visibleProducts.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.style.gridColumn = '1 / -1';
+                noResults.style.textAlign = 'center';
+                noResults.style.padding = '20px';
+                noResults.style.color = 'var(--tg-theme-hint-color)';
+                noResults.textContent = 'Товары не найдены';
+                
+                const existingMessage = favoritesGrid.querySelector('.no-results-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                
+                noResults.className = 'no-results-message';
+                favoritesGrid.appendChild(noResults);
+            } else {
+                const existingMessage = favoritesGrid.querySelector('.no-results-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+            }
+        });
+
+        // Обновляем обработчик табов
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                
+                const targetContent = document.getElementById(tab.dataset.tab);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    
+                    if (tab.dataset.tab === 'favorites') {
+                        loadFavorites();
+                    }
+                    
+                    if (tab.dataset.tab === 'categories' && isAdmin) {
+                        loadPendingProducts();
+                        checkModerationStatus();
+                    }
+                }
+            });
+        });
 
         // Показать детали товара
         function showProductDetails(id, product) {
@@ -1849,7 +2083,7 @@
         // Функция входа в админ-панель
         function loginAdmin() {
             const password = document.getElementById('adminPassword').value;
-            if (password === '1234') {
+            if (password === '97mcNSwJO38hMKvGT') {
                 isAdmin = true;
                 document.getElementById('adminLoginForm').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
@@ -2315,7 +2549,57 @@
             loadProducts();
             loadStores();
             initStoreMap();
+            
+            // Добавляем обработчик поиска
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                filterProducts(searchTerm);
+            });
         });
+
+        // Функция фильтрации товаров
+        function filterProducts(searchTerm) {
+            const productGrid = document.getElementById('productGrid');
+            const products = Array.from(productGrid.children);
+            
+            products.forEach(product => {
+                const productName = product.querySelector('.product-name').textContent.toLowerCase();
+                const productDescription = product.querySelector('.product-description').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || productDescription.includes(searchTerm)) {
+                    product.style.display = '';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+            
+            // Показываем сообщение, если нет результатов
+            const visibleProducts = products.filter(p => p.style.display !== 'none');
+            if (visibleProducts.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.style.gridColumn = '1 / -1';
+                noResults.style.textAlign = 'center';
+                noResults.style.padding = '20px';
+                noResults.style.color = 'var(--tg-theme-hint-color)';
+                noResults.textContent = 'Товары не найдены';
+                
+                // Удаляем предыдущее сообщение, если оно есть
+                const existingMessage = productGrid.querySelector('.no-results-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                
+                noResults.className = 'no-results-message';
+                productGrid.appendChild(noResults);
+            } else {
+                // Удаляем сообщение, если есть результаты
+                const existingMessage = productGrid.querySelector('.no-results-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+            }
+        }
 
         // Функция для отображения формы добавления товара
         function showAddProductForm() {
