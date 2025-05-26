@@ -5,7 +5,7 @@ import json
 # Инициализация Firebase
 cred = credentials.Certificate('firebase-config.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://miniapptgliberty-default-rtdb.firebaseio.com/'  # Замените на ваш URL
+    'databaseURL': 'https://miniapptgliberty-default-rtdb.firebaseio.com/'  # url базы данных
 })
 
 def add_product(name, description, price, image_url, latitude, longitude, user_id):

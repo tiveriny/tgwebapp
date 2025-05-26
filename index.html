@@ -1270,10 +1270,13 @@
         .search-container {
             margin-bottom: 20px;
             width: 100%;
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .search-input {
-            width: 100%;
+            flex: 1;
             padding: 12px 20px;
             border: 2px solid var(--tg-theme-hint-color);
             border-radius: 12px;
@@ -1283,14 +1286,38 @@
             transition: all var(--transition-speed) ease;
         }
 
-        .search-input:focus {
-            outline: none;
-            border-color: var(--tg-theme-button-color);
-            box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
+        .refresh-button {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            flex-shrink: 0;
         }
 
-        .search-input::placeholder {
-            color: var(--tg-theme-hint-color);
+        .refresh-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(36, 129, 204, 0.2);
+        }
+
+        .refresh-button:active {
+            transform: translateY(1px);
+        }
+
+        .refresh-button.refreshing {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .pending-reviews {
@@ -1368,7 +1395,7 @@
     </style>
 </head>
 <body>
-    <div class="version">v0.17</div>
+    <div class="version">v1.0</div>
     <div class="container">
         <div class="main-content">
             <div class="header">
@@ -1386,6 +1413,13 @@
                     <div class="products-section">
                         <div class="search-container">
                             <input type="text" id="searchInput" class="search-input" placeholder="Поиск товаров...">
+                            <button class="refresh-button" onclick="refreshProducts()" title="Обновить список товаров">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 4v6h-6"/>
+                                    <path d="M1 20v-6h6"/>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                </svg>
+                            </button>
                         </div>
                         <button class="button add-product-button" onclick="showAddProductForm()">Добавить товар</button>
                         
@@ -1453,7 +1487,7 @@
                     <div class="products-section">
                         <div class="search-container">
                             <input type="text" id="favoritesSearchInput" class="search-input" placeholder="Поиск в избранном...">
-                        </div>
+                    </div>
                         <div class="products-grid" id="favoritesGrid"></div>
                     </div>
                 </div>
@@ -2192,60 +2226,60 @@
         // Обновляем функцию загрузки категорий
         function loadCategories() {
             return new Promise((resolve, reject) => {
-                const categoriesRef = database.ref('categories');
-                categoriesRef.on('value', (snapshot) => {
+            const categoriesRef = database.ref('categories');
+            categoriesRef.on('value', (snapshot) => {
                     try {
-                        const categories = snapshot.val() || {};
-                        const categoriesList = document.getElementById('categoriesList');
-                        const categorySelect = document.getElementById('productCategory');
-                        
+                const categories = snapshot.val() || {};
+                const categoriesList = document.getElementById('categoriesList');
+                const categorySelect = document.getElementById('productCategory');
+                
                         if (categoriesList) {
                             // Очищаем список категорий
-                            categoriesList.innerHTML = '<h3>Существующие категории</h3>';
-                            
-                            // Преобразуем объект в массив и сортируем по ID
-                            const sortedCategories = Object.entries(categories)
+                categoriesList.innerHTML = '<h3>Существующие категории</h3>';
+                
+                // Преобразуем объект в массив и сортируем по ID
+                const sortedCategories = Object.entries(categories)
                                 .filter(([, category]) => category && category.id)
-                                .sort(([, a], [, b]) => a.id - b.id);
-                            
-                            // Добавляем категории в список админ-панели
-                            sortedCategories.forEach(([firebaseId, category]) => {
+                    .sort(([, a], [, b]) => a.id - b.id);
+                
+                // Добавляем категории в список админ-панели
+                sortedCategories.forEach(([firebaseId, category]) => {
                                 if (!category.id) return;
-                                
-                                const card = document.createElement('div');
-                                card.className = 'category-card';
-                                card.innerHTML = `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                        <h3>${category.name}</h3>
-                                        <span style="color: var(--tg-theme-hint-color); font-size: 14px;">ID: ${category.id}</span>
-                                    </div>
-                                    <div class="category-actions">
-                                        <button class="edit-button" onclick="editCategory('${firebaseId}')">Редактировать</button>
-                                        <button class="delete-button" onclick="deleteCategory('${firebaseId}')">Удалить</button>
-                                    </div>
-                                `;
-                                categoriesList.appendChild(card);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'category-card';
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3>${category.name}</h3>
+                            <span style="color: var(--tg-theme-hint-color); font-size: 14px;">ID: ${category.id}</span>
+                        </div>
+                        <div class="category-actions">
+                            <button class="edit-button" onclick="editCategory('${firebaseId}')">Редактировать</button>
+                            <button class="delete-button" onclick="deleteCategory('${firebaseId}')">Удалить</button>
+                        </div>
+                    `;
+                    categoriesList.appendChild(card);
                             });
                         }
                         
                         if (categorySelect) {
                             // Очищаем select
                             categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-                            
+                    
                             // Добавляем категории в select
                             Object.entries(categories)
                                 .filter(([, category]) => category && category.id)
                                 .sort(([, a], [, b]) => a.id - b.id)
                                 .forEach(([firebaseId, category]) => {
-                                    const option = document.createElement('option');
-                                    option.value = category.id;
-                                    option.textContent = category.name;
-                                    categorySelect.appendChild(option);
-                                });
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                });
                         }
 
-                        // Обновляем отображение категорий в фильтрах
-                        updateCategoryFilters(categories);
+                // Обновляем отображение категорий в фильтрах
+                updateCategoryFilters(categories);
                         resolve();
                     } catch (error) {
                         console.error('Error processing categories:', error);
@@ -2315,38 +2349,38 @@
             }
 
             try {
-                // Фильтруем и сортируем категории
-                const sortedCategories = Object.entries(categories)
-                    .filter(([, category]) => category && category.id)
-                    .sort(([, a], [, b]) => a.id - b.id);
+            // Фильтруем и сортируем категории
+            const sortedCategories = Object.entries(categories)
+                .filter(([, category]) => category && category.id)
+                .sort(([, a], [, b]) => a.id - b.id);
 
-                categoryFilter.innerHTML = `
-                    <button class="active" data-category="">Все товары</button>
-                    ${sortedCategories.map(([firebaseId, category]) => `
-                        <button data-category="${category.id}">${category.name}</button>
-                    `).join('')}
-                `;
+            categoryFilter.innerHTML = `
+                <button class="active" data-category="">Все товары</button>
+                ${sortedCategories.map(([firebaseId, category]) => `
+                    <button data-category="${category.id}">${category.name}</button>
+                `).join('')}
+            `;
 
-                // Обновляем обработчик клика
-                categoryFilter.addEventListener('click', (e) => {
-                    if (e.target.tagName === 'BUTTON') {
-                        // Убираем активный класс у всех кнопок
-                        categoryFilter.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                        // Добавляем активный класс выбранной кнопке
-                        e.target.classList.add('active');
-                        
-                        // Получаем ID категории из data-атрибута
-                        const categoryId = e.target.dataset.category;
-                        console.log('Selected category ID:', categoryId);
-                        
-                        // Обновляем текущую категорию
-                        currentCategory = categoryId;
-                        console.log('Updated currentCategory:', currentCategory);
-                        
-                        // Перезагружаем товары
-                        loadProducts();
-                    }
-                });
+            // Обновляем обработчик клика
+            categoryFilter.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    // Убираем активный класс у всех кнопок
+                    categoryFilter.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                    // Добавляем активный класс выбранной кнопке
+                    e.target.classList.add('active');
+                    
+                    // Получаем ID категории из data-атрибута
+                    const categoryId = e.target.dataset.category;
+                    console.log('Selected category ID:', categoryId);
+                    
+                    // Обновляем текущую категорию
+                    currentCategory = categoryId;
+                    console.log('Updated currentCategory:', currentCategory);
+                    
+                    // Перезагружаем товары
+                    loadProducts();
+                }
+            });
             } catch (error) {
                 console.error('Error updating category filters:', error);
             }
@@ -3222,6 +3256,16 @@
                                     </label>
                                     <div class="file-name" id="fileName"></div>
                                 </div>
+                                <div style="margin-top: 20px;">
+                                    <button class="button" onclick="exportToExcel()" style="background-color: #28a745;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                            <polyline points="7 10 12 15 17 10"/>
+                                            <line x1="12" y1="15" x2="12" y2="3"/>
+                                        </svg>
+                                        Экспорт товаров в Excel
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -3561,6 +3605,121 @@
                 tg.showPopup({
                     title: 'Ошибка',
                     message: 'Не удалось изменить статус отзыва: ' + error.message,
+                    buttons: [{type: 'ok'}]
+                });
+            });
+        }
+
+        // Функция обновления товаров
+        function refreshProducts() {
+            const refreshButton = document.querySelector('.refresh-button');
+            if (!refreshButton) return;
+
+            // Добавляем класс для анимации
+            refreshButton.classList.add('refreshing');
+            
+            // Обновляем данные
+            Promise.all([
+                loadCategories(),
+                loadProducts()
+            ]).then(() => {
+                // Показываем уведомление об успешном обновлении
+                tg.showPopup({
+                    title: 'Успех',
+                    message: 'Список товаров обновлен',
+                    buttons: [{type: 'ok'}]
+                });
+            }).catch(error => {
+                console.error('Error refreshing data:', error);
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Не удалось обновить список товаров',
+                    buttons: [{type: 'ok'}]
+                });
+            }).finally(() => {
+                // Убираем класс анимации
+                setTimeout(() => {
+                    refreshButton.classList.remove('refreshing');
+                }, 500);
+            });
+        }
+
+        // Функция экспорта товаров в Excel
+        function exportToExcel() {
+            if (!isAdmin) {
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'У вас нет прав для экспорта товаров',
+                    buttons: [{type: 'ok'}]
+                });
+                return;
+            }
+
+            // Показываем индикатор загрузки
+            tg.showPopup({
+                title: 'Экспорт',
+                message: 'Подготовка файла...',
+                buttons: []
+            });
+
+            // Получаем все товары из базы данных
+            const productsRef = database.ref('products');
+            productsRef.once('value').then((snapshot) => {
+                const products = snapshot.val() || {};
+                
+                // Получаем все категории для сопоставления ID с названиями
+                const categoriesRef = database.ref('categories');
+                return categoriesRef.once('value').then((categoriesSnapshot) => {
+                    const categories = categoriesSnapshot.val() || {};
+                    const categoryMap = {};
+                    
+                    // Создаем карту категорий для быстрого поиска
+                    Object.entries(categories).forEach(([id, category]) => {
+                        categoryMap[id] = category.name;
+                    });
+
+                    // Подготавливаем данные для экспорта
+                    const exportData = Object.entries(products).map(([id, product]) => {
+                        // Получаем название категории
+                        const categoryName = categoryMap[product.category] || 'Неизвестная категория';
+                        
+                        return {
+                            'ID товара': id,
+                            'Название': product.name || '',
+                            'Описание': product.description || '',
+                            'Цена': product.price || 0,
+                            'Категория ID': product.category || '',
+                            'Название категории': categoryName,
+                            'URL изображения': product.image_url || '',
+                            'Адрес': product.address || '',
+                            'Статус': product.status || 'approved',
+                            'Дата создания': new Date(product.created_at).toLocaleString('ru-RU'),
+                            'ID пользователя': product.user_id || '',
+                            'Имя пользователя': product.user_name || '',
+                            'Username пользователя': product.user_username || ''
+                        };
+                    });
+
+                    // Создаем рабочую книгу Excel
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Товары");
+
+                    // Генерируем имя файла с текущей датой
+                    const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
+                    const fileName = `products_export_${date}.xlsx`;
+
+                    // Сохраняем файл
+                    XLSX.writeFile(wb, fileName);
+
+                    // Закрываем индикатор загрузки
+                    tg.closePopup();
+                });
+            }).catch((error) => {
+                console.error('Error exporting to Excel:', error);
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Не удалось экспортировать товары: ' + error.message,
                     buttons: [{type: 'ok'}]
                 });
             });
