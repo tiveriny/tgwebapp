@@ -2705,7 +2705,7 @@
             loadProducts();
             loadStores();
             initStoreMap();
-            initPullToRefresh(); // Добавляем инициализацию pull-to-refresh
+            
             
             // Добавляем обработчик поиска
             const searchInput = document.getElementById('searchInput');
@@ -3256,16 +3256,6 @@
                                     </label>
                                     <div class="file-name" id="fileName"></div>
                                 </div>
-                                <div style="margin-top: 20px;">
-                                    <button class="button" onclick="exportToExcel()" style="background-color: #28a745;">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                            <polyline points="7 10 12 15 17 10"/>
-                                            <line x1="12" y1="15" x2="12" y2="3"/>
-                                        </svg>
-                                        Экспорт товаров в Excel
-                                    </button>
-                                </div>
                             </div>
                         </div>
 
@@ -3409,25 +3399,7 @@
         let isRefreshing = false;
         let pullThreshold = 60;
 
-        function initPullToRefresh() {
-            const productsSection = document.querySelector('.products-section');
-            if (!productsSection) return;
-
-            // Создаем элемент pull-to-refresh
-            const pullToRefresh = document.createElement('div');
-            pullToRefresh.className = 'pull-to-refresh';
-            pullToRefresh.innerHTML = `
-                <div class="spinner"></div>
-                <span class="text">Потяните для обновления</span>
-                <div class="progress"></div>
-            `;
-            productsSection.insertBefore(pullToRefresh, productsSection.firstChild);
-
-            // Обработчики событий для pull-to-refresh
-            productsSection.addEventListener('touchstart', handleTouchStart, { passive: true });
-            productsSection.addEventListener('touchmove', handleTouchMove, { passive: false });
-            productsSection.addEventListener('touchend', handleTouchEnd, { passive: true });
-        }
+        
 
         function handleTouchStart(e) {
             if (isRefreshing) return;
@@ -3442,48 +3414,7 @@
             }
         }
 
-        function handleTouchMove(e) {
-            if (!isPulling || isRefreshing) return;
-
-            pullMoveY = e.touches[0].clientY - pullStartY;
-            
-            // Если потянули вниз
-            if (pullMoveY > 0) {
-                const pullToRefresh = document.querySelector('.pull-to-refresh');
-                if (pullToRefresh) {
-                    // Предотвращаем прокрутку только если мы действительно тянем вниз
-                    if (pullMoveY > 10) {
-                        e.preventDefault();
-                    }
-
-                    // Добавляем класс pulling и обновляем трансформацию
-                    pullToRefresh.classList.add('pulling');
-                    
-                    // Ограничиваем максимальное растяжение
-                    const maxPull = pullThreshold * 1.5;
-                    const pullDistance = Math.min(pullMoveY, maxPull);
-                    pullToRefresh.style.transform = `translateY(${pullDistance}px)`;
-
-                    // Обновляем прогресс-бар
-                    const progress = pullToRefresh.querySelector('.progress');
-                    if (progress) {
-                        const progressPercent = (pullDistance / pullThreshold) * 100;
-                        progress.style.width = `${Math.min(progressPercent, 100)}%`;
-                    }
-
-                    // Обновляем текст в зависимости от расстояния
-                    const text = pullToRefresh.querySelector('.text');
-                    if (text) {
-                        if (pullDistance >= pullThreshold) {
-                            text.textContent = 'Отпустите для обновления';
-                        } else {
-                            text.textContent = 'Потяните для обновления';
-                        }
-                    }
-                }
-            }
-        }
-
+        
         function handleTouchEnd() {
             if (!isPulling || isRefreshing) return;
 
@@ -3641,87 +3572,6 @@
                 setTimeout(() => {
                     refreshButton.classList.remove('refreshing');
                 }, 500);
-            });
-        }
-
-        // Функция экспорта товаров в Excel
-        function exportToExcel() {
-            if (!isAdmin) {
-                tg.showPopup({
-                    title: 'Ошибка',
-                    message: 'У вас нет прав для экспорта товаров',
-                    buttons: [{type: 'ok'}]
-                });
-                return;
-            }
-
-            // Показываем индикатор загрузки
-            tg.showPopup({
-                title: 'Экспорт',
-                message: 'Подготовка файла...',
-                buttons: []
-            });
-
-            // Получаем все товары из базы данных
-            const productsRef = database.ref('products');
-            productsRef.once('value').then((snapshot) => {
-                const products = snapshot.val() || {};
-                
-                // Получаем все категории для сопоставления ID с названиями
-                const categoriesRef = database.ref('categories');
-                return categoriesRef.once('value').then((categoriesSnapshot) => {
-                    const categories = categoriesSnapshot.val() || {};
-                    const categoryMap = {};
-                    
-                    // Создаем карту категорий для быстрого поиска
-                    Object.entries(categories).forEach(([id, category]) => {
-                        categoryMap[id] = category.name;
-                    });
-
-                    // Подготавливаем данные для экспорта
-                    const exportData = Object.entries(products).map(([id, product]) => {
-                        // Получаем название категории
-                        const categoryName = categoryMap[product.category] || 'Неизвестная категория';
-                        
-                        return {
-                            'ID товара': id,
-                            'Название': product.name || '',
-                            'Описание': product.description || '',
-                            'Цена': product.price || 0,
-                            'Категория ID': product.category || '',
-                            'Название категории': categoryName,
-                            'URL изображения': product.image_url || '',
-                            'Адрес': product.address || '',
-                            'Статус': product.status || 'approved',
-                            'Дата создания': new Date(product.created_at).toLocaleString('ru-RU'),
-                            'ID пользователя': product.user_id || '',
-                            'Имя пользователя': product.user_name || '',
-                            'Username пользователя': product.user_username || ''
-                        };
-                    });
-
-                    // Создаем рабочую книгу Excel
-                    const ws = XLSX.utils.json_to_sheet(exportData);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "Товары");
-
-                    // Генерируем имя файла с текущей датой
-                    const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
-                    const fileName = `products_export_${date}.xlsx`;
-
-                    // Сохраняем файл
-                    XLSX.writeFile(wb, fileName);
-
-                    // Закрываем индикатор загрузки
-                    tg.closePopup();
-                });
-            }).catch((error) => {
-                console.error('Error exporting to Excel:', error);
-                tg.showPopup({
-                    title: 'Ошибка',
-                    message: 'Не удалось экспортировать товары: ' + error.message,
-                    buttons: [{type: 'ok'}]
-                });
             });
         }
     </script>
