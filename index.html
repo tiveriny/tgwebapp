@@ -955,6 +955,76 @@
         .products-section {
             position: relative;
             z-index: 1;
+            touch-action: pan-y;
+        }
+
+        .pull-to-refresh {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--tg-theme-hint-color);
+            font-size: 14px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+        }
+
+        .pull-to-refresh .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--tg-theme-hint-color);
+            border-top-color: var(--tg-theme-button-color);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+            display: none;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .pull-to-refresh.refreshing .spinner {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pull-to-refresh.pulling {
+            opacity: 1;
+            transform: translateY(60px);
+        }
+
+        .pull-to-refresh .text {
+            transition: opacity 0.3s ease;
+        }
+
+        .pull-to-refresh.refreshing .text {
+            opacity: 0;
+        }
+
+        .pull-to-refresh .progress {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 1px;
+            background: var(--tg-theme-hint-color);
+            transition: width 0.3s ease;
+            width: 0;
+            opacity: 0.3;
+            max-width: 100px;
         }
 
         .add-product-button {
@@ -1222,6 +1292,79 @@
         .search-input::placeholder {
             color: var(--tg-theme-hint-color);
         }
+
+        .pending-reviews {
+            margin-top: 20px;
+        }
+
+        .review-card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-speed) ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-card .product-info {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .review-card .product-info h4 {
+            font-size: 16px;
+            color: var(--tg-theme-text-color);
+            margin-bottom: 5px;
+        }
+
+        .review-card .review-content {
+            margin-bottom: 15px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .review-card .review-meta {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 15px;
+        }
+
+        .review-card .review-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .review-card .approve-button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .review-card .reject-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .review-card .approve-button:hover,
+        .review-card .reject-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -1236,7 +1379,6 @@
                 <div class="tab active" data-tab="products">Товары</div>
                 <div class="tab" data-tab="favorites">Избранное</div>
                 <div class="tab" data-tab="profile">Профиль</div>
-                <div class="tab" data-tab="categories">Управление</div>
             </div>
 
             <div class="tab-content-wrapper">
@@ -1313,89 +1455,6 @@
                             <input type="text" id="favoritesSearchInput" class="search-input" placeholder="Поиск в избранном...">
                         </div>
                         <div class="products-grid" id="favoritesGrid"></div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="categories">
-                    <div class="admin-header">
-                        <h2>Админ-Панель</h2>
-                    </div>
-                    <div id="adminLoginForm" class="admin-login-form">
-                        <h2>Вход в админ-панель</h2>
-                        <div class="form-group">
-                            <label>Пароль</label>
-                            <input type="password" id="adminPassword">
-                        </div>
-                        <button class="button" onclick="loginAdmin()">Войти</button>
-                    </div>
-                    
-                    <div id="adminPanel" class="admin-panel" style="display: none;">
-                        <div class="admin-section">
-                            <h2>Управление категориями</h2>
-                            <div class="form-group">
-                                <label>Название категории</label>
-                                <input type="text" id="categoryName">
-                            </div>
-                            <button class="button" onclick="addCategory()">Добавить категорию</button>
-                            
-                            <div class="categories-list" id="categoriesList">
-                                <h3>Существующие категории</h3>
-                                <!-- Здесь будут отображаться категории -->
-                            </div>
-                        </div>
-
-                        <div class="admin-section">
-                            <h2>Импорт товаров из Excel</h2>
-                            <div class="excel-upload">
-                                <h3>Загрузка товаров из Excel</h3>
-                                <p>Поддерживаемые форматы: .xlsx, .xls</p>
-                                <p>Структура файла должна содержать следующие колонки:</p>
-                                <ul style="color: var(--tg-theme-hint-color); margin-bottom: 15px; padding-left: 20px;">
-                                    <li>name - название товара</li>
-                                    <li>description - описание товара</li>
-                                    <li>price - цена товара</li>
-                                    <li>category - ID категории</li>
-                                    <li>image_url - URL изображения (опционально)</li>
-                                    <li>address - адрес (опционально)</li>
-                                </ul>
-                                <p style="margin-bottom: 15px;">Скачайте шаблон Excel по ссылке:</p>
-                                <a href="https://docs.google.com/spreadsheets/d/1_7_TYc7XMoFQOCFywSxRBmYnjUZ4qCfs/edit?usp=drive_link&ouid=109154224706737583540&rtpof=true&sd=true" 
-                                   target="_blank" 
-                                   style="color: var(--tg-theme-link-color); text-decoration: underline; margin-bottom: 20px; display: inline-block;">
-                                    Шаблон Excel на Google Drive
-                                </a>
-                                <div class="file-input-wrapper">
-                                    <label class="file-input-label">
-                                        Выбрать файл Excel
-                                        <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
-                                    </label>
-                                    <div class="file-name" id="fileName"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="admin-section">
-                            <h2>Модерация товаров</h2>
-                            <div class="pending-products" id="pendingProducts">
-                                <!-- Здесь будут отображаться товары на модерацию -->
-                            </div>
-                        </div>
-
-                        <div class="admin-section">
-                            <h2>Управление популярными магазинами</h2>
-                            <div class="form-group">
-                                <label>Название магазина</label>
-                                <input type="text" id="storeName">
-                            </div>
-                            <div class="form-group">
-                                <label>Местоположение магазина</label>
-                                <div class="map-container" id="storeMap"></div>
-                                <input type="hidden" id="storeLatitude" value="62.0355">
-                                <input type="hidden" id="storeLongitude" value="129.6755">
-                            </div>
-                            <button class="button" onclick="addStore()">Добавить магазин</button>
-                            <div class="stores-list" id="storesList"></div>
-                        </div>
                     </div>
                 </div>
 
@@ -1669,8 +1728,15 @@
         // Функция для проверки, находится ли товар в избранном
         function checkIfFavorite(productId) {
             if (!user) return false;
-            const favorites = JSON.parse(localStorage.getItem(`favorites_${user.id}`) || '[]');
-            return favorites.includes(productId);
+            const favoritesRef = database.ref(`favorites/${user.id}`);
+            let isFavorite = false;
+            
+            favoritesRef.once('value').then((snapshot) => {
+                const favorites = snapshot.val() || {};
+                isFavorite = favorites[productId] === true;
+            });
+            
+            return isFavorite;
         }
 
         // Функция для добавления/удаления товара из избранного
@@ -1685,70 +1751,81 @@
             }
 
             event.stopPropagation();
-            const favorites = JSON.parse(localStorage.getItem(`favorites_${user.id}`) || '[]');
-            const index = favorites.indexOf(productId);
+            const favoritesRef = database.ref(`favorites/${user.id}/${productId}`);
             
-            if (index === -1) {
-                favorites.push(productId);
-                event.target.closest('.favorite-button').classList.add('active');
-            } else {
-                favorites.splice(index, 1);
-                event.target.closest('.favorite-button').classList.remove('active');
-            }
-            
-            localStorage.setItem(`favorites_${user.id}`, JSON.stringify(favorites));
-            loadFavorites(); // Обновляем список избранных товаров
+            favoritesRef.once('value').then((snapshot) => {
+                const isFavorite = snapshot.val() === true;
+                
+                if (isFavorite) {
+                    // Удаляем из избранного
+                    favoritesRef.remove().then(() => {
+                        event.target.closest('.favorite-button').classList.remove('active');
+                        loadFavorites(); // Обновляем список избранных товаров
+                    });
+                } else {
+                    // Добавляем в избранное
+                    favoritesRef.set(true).then(() => {
+                        event.target.closest('.favorite-button').classList.add('active');
+                        loadFavorites(); // Обновляем список избранных товаров
+                    });
+                }
+            });
         }
 
         // Функция для загрузки избранных товаров
         function loadFavorites() {
             if (!user) return;
             
-            const favorites = JSON.parse(localStorage.getItem(`favorites_${user.id}`) || '[]');
-            const favoritesGrid = document.getElementById('favoritesGrid');
+            const favoritesRef = database.ref(`favorites/${user.id}`);
             const productsRef = database.ref('products');
+            const favoritesGrid = document.getElementById('favoritesGrid');
             
-            productsRef.once('value').then((snapshot) => {
-                const products = snapshot.val() || {};
-                const favoriteProducts = Object.entries(products)
-                    .filter(([id, product]) => favorites.includes(id) && (product.status === 'approved' || product.status === undefined));
+            favoritesRef.once('value').then((favoritesSnapshot) => {
+                const favorites = favoritesSnapshot.val() || {};
+                const favoriteIds = Object.keys(favorites).filter(id => favorites[id] === true);
                 
-                favoritesGrid.innerHTML = '';
-                
-                if (favoriteProducts.length === 0) {
-                    favoritesGrid.innerHTML = `
-                        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">
-                            В избранном пока нет товаров
-                        </div>
-                    `;
-                    return;
-                }
-                
-                favoriteProducts.forEach(([id, product], index) => {
-                    const card = document.createElement('div');
-                    card.className = 'product-card';
-                    card.style.transitionDelay = `${index * 50}ms`;
+                productsRef.once('value').then((productsSnapshot) => {
+                    const products = productsSnapshot.val() || {};
+                    const favoriteProducts = Object.entries(products)
+                        .filter(([id, product]) => favoriteIds.includes(id) && (product.status === 'approved' || product.status === undefined));
                     
-                    card.innerHTML = `
-                        <button class="favorite-button active" onclick="toggleFavorite('${id}', event)">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                            </svg>
-                        </button>
-                        <div class="product-info">
-                            <h3 class="product-name">${product.name || 'Без названия'}</h3>
-                            <p class="product-description">${product.description || 'Нет описания'}</p>
-                            <p class="product-price">💰 ${product.price || 0} руб.</p>
-                        </div>
-                    `;
+                    favoritesGrid.innerHTML = '';
                     
-                    card.addEventListener('click', function(e) {
-                        if (!e.target.closest('.favorite-button')) {
-                            showProductDetails(id, product);
-                        }
+                    if (favoriteProducts.length === 0) {
+                        favoritesGrid.innerHTML = `
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">
+                                В избранном пока нет товаров
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    favoriteProducts.forEach(([id, product], index) => {
+                        const card = document.createElement('div');
+                        card.className = 'product-card';
+                        card.style.transitionDelay = `${index * 50}ms`;
+                        
+                        card.innerHTML = `
+                            <button class="favorite-button active" onclick="toggleFavorite('${id}', event)">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                            </button>
+                            <div class="product-info">
+                                <h3 class="product-name">${product.name || 'Без названия'}</h3>
+                                <p class="product-description">${product.description || 'Нет описания'}</p>
+                                <p class="product-price">💰 ${product.price || 0} руб.</p>
+                            </div>
+                        `;
+                        
+                        card.addEventListener('click', function(e) {
+                            if (!e.target.closest('.favorite-button')) {
+                                showProductDetails(id, product);
+                            }
+                        });
+                        
+                        favoritesGrid.appendChild(card);
                     });
-                    
-                    favoritesGrid.appendChild(card);
                 });
             });
         }
@@ -2001,7 +2078,8 @@
                 user_id: user.id,
                 user_name: user.first_name,
                 user_username: user.username,
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
+                status: 'pending' // Добавляем статус pending для новых отзывов
             };
 
             database.ref(`products/${currentProductId}/reviews`).push(review)
@@ -2009,7 +2087,7 @@
                     document.getElementById('reviewText').value = '';
                     tg.showPopup({
                         title: 'Успех',
-                        message: 'Отзыв добавлен',
+                        message: 'Отзыв отправлен на модерацию',
                         buttons: [{type: 'ok'}]
                     });
                 })
@@ -2037,6 +2115,7 @@
 
                 // Сортируем отзывы по дате (новые сверху)
                 const sortedReviews = Object.entries(reviews)
+                    .filter(([, review]) => review.status === 'approved' || review.status === undefined) // Показываем только одобренные отзывы
                     .sort(([, a], [, b]) => new Date(b.created_at) - new Date(a.created_at));
 
                 sortedReviews.forEach(([id, review]) => {
@@ -2085,18 +2164,21 @@
             const password = document.getElementById('adminPassword').value;
             if (password === '97mcNSwJO38hMKvGT') {
                 isAdmin = true;
-                document.getElementById('adminLoginForm').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
+                const adminLoginForm = document.getElementById('adminLoginForm');
+                const adminPanel = document.getElementById('adminPanel');
+                if (adminLoginForm) adminLoginForm.style.display = 'none';
+                if (adminPanel) adminPanel.style.display = 'block';
                 
                 console.log('Admin logged in successfully');
                 
-                // Сначала выполняем миграцию, затем остальные действия
-                migrateCategories().then(() => {
-                    console.log('Categories migration completed');
-                    fixCategoryIds();
-                    loadCategories();
+                // Загружаем категории, товары и отзывы на модерацию
+                loadCategories().then(() => {
                     loadProducts();
                     loadPendingProducts();
+                    loadPendingReviews();
+                    initStoreMap();
+                }).catch(error => {
+                    console.error('Error loading admin data:', error);
                 });
             } else {
                 tg.showPopup({
@@ -2107,127 +2189,167 @@
             }
         }
 
-        // Функция добавления категории
-        function addCategory() {
-            if (!isAdmin) return;
-            
-            const name = document.getElementById('categoryName').value;
-            if (!name) {
-                tg.showPopup({
-                    title: 'Ошибка',
-                    message: 'Введите название категории',
-                    buttons: [{type: 'ok'}]
-                });
-                return;
-            }
+        // Обновляем функцию загрузки категорий
+        function loadCategories() {
+            return new Promise((resolve, reject) => {
+                const categoriesRef = database.ref('categories');
+                categoriesRef.on('value', (snapshot) => {
+                    try {
+                        const categories = snapshot.val() || {};
+                        const categoriesList = document.getElementById('categoriesList');
+                        const categorySelect = document.getElementById('productCategory');
+                        
+                        if (categoriesList) {
+                            // Очищаем список категорий
+                            categoriesList.innerHTML = '<h3>Существующие категории</h3>';
+                            
+                            // Преобразуем объект в массив и сортируем по ID
+                            const sortedCategories = Object.entries(categories)
+                                .filter(([, category]) => category && category.id)
+                                .sort(([, a], [, b]) => a.id - b.id);
+                            
+                            // Добавляем категории в список админ-панели
+                            sortedCategories.forEach(([firebaseId, category]) => {
+                                if (!category.id) return;
+                                
+                                const card = document.createElement('div');
+                                card.className = 'category-card';
+                                card.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <h3>${category.name}</h3>
+                                        <span style="color: var(--tg-theme-hint-color); font-size: 14px;">ID: ${category.id}</span>
+                                    </div>
+                                    <div class="category-actions">
+                                        <button class="edit-button" onclick="editCategory('${firebaseId}')">Редактировать</button>
+                                        <button class="delete-button" onclick="deleteCategory('${firebaseId}')">Удалить</button>
+                                    </div>
+                                `;
+                                categoriesList.appendChild(card);
+                            });
+                        }
+                        
+                        if (categorySelect) {
+                            // Очищаем select
+                            categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
+                            
+                            // Добавляем категории в select
+                            Object.entries(categories)
+                                .filter(([, category]) => category && category.id)
+                                .sort(([, a], [, b]) => a.id - b.id)
+                                .forEach(([firebaseId, category]) => {
+                                    const option = document.createElement('option');
+                                    option.value = category.id;
+                                    option.textContent = category.name;
+                                    categorySelect.appendChild(option);
+                                });
+                        }
 
-            // Получаем текущий список категорий для определения следующего ID
-            const categoriesRef = database.ref('categories');
-            categoriesRef.once('value').then((snapshot) => {
-                const categories = snapshot.val() || {};
-                const nextId = Object.keys(categories).length + 1;
-
-                // Создаем новую категорию с последовательным ID
-                categoriesRef.push({
-                    name: name,
-                    id: nextId,
-                    created_at: new Date().toISOString()
-                }).then(() => {
-                    document.getElementById('categoryName').value = '';
-                    loadCategories();
-                    tg.showPopup({
-                        title: 'Успех',
-                        message: 'Категория добавлена',
-                        buttons: [{type: 'ok'}]
-                    });
+                        // Обновляем отображение категорий в фильтрах
+                        updateCategoryFilters(categories);
+                        resolve();
+                    } catch (error) {
+                        console.error('Error processing categories:', error);
+                        reject(error);
+                    }
+                }, (error) => {
+                    console.error('Error loading categories:', error);
+                    reject(error);
                 });
             });
         }
 
-        // Обновляем функцию загрузки категорий
-        function loadCategories() {
-            const categoriesRef = database.ref('categories');
-            categoriesRef.on('value', (snapshot) => {
-                const categories = snapshot.val() || {};
-                const categoriesList = document.getElementById('categoriesList');
-                const categorySelect = document.getElementById('productCategory');
-                
-                // Очищаем списки
-                categoriesList.innerHTML = '<h3>Существующие категории</h3>';
-                categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-                
-                // Преобразуем объект в массив и сортируем по ID
-                const sortedCategories = Object.entries(categories)
-                    .filter(([, category]) => category && category.id) // Фильтруем категории без ID
-                    .sort(([, a], [, b]) => a.id - b.id);
-                
-                // Добавляем категории в список админ-панели
-                sortedCategories.forEach(([firebaseId, category]) => {
-                    if (!category.id) return; // Пропускаем категории без ID
-                    
-                    const card = document.createElement('div');
-                    card.className = 'category-card';
-                    card.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3>${category.name}</h3>
-                            <span style="color: var(--tg-theme-hint-color); font-size: 14px;">ID: ${category.id}</span>
-                        </div>
-                        <div class="category-actions">
-                            <button class="edit-button" onclick="editCategory('${firebaseId}')">Редактировать</button>
-                            <button class="delete-button" onclick="deleteCategory('${firebaseId}')">Удалить</button>
-                        </div>
-                    `;
-                    categoriesList.appendChild(card);
-                    
-                    // Добавляем категорию в select при добавлении товара
-                    const option = document.createElement('option');
-                    option.value = category.id;
-                    option.textContent = category.name;
-                    categorySelect.appendChild(option);
-                });
+        // Обновляем функцию инициализации карты для магазинов
+        function initStoreMap() {
+            if (typeof ymaps === 'undefined' || !ymaps.ready) {
+                console.warn('Yandex Maps API not loaded yet');
+                return;
+            }
 
-                // Обновляем отображение категорий в фильтрах
-                updateCategoryFilters(categories);
+            ymaps.ready(function() {
+                const storeMapContainer = document.getElementById('storeMap');
+                if (!storeMapContainer) {
+                    console.warn('Store map container not found');
+                    return;
+                }
+
+                try {
+                    // Очищаем контейнер карты
+                    storeMapContainer.innerHTML = '';
+                    
+                    const map = new ymaps.Map('storeMap', {
+                        center: [62.0355, 129.6755],
+                        zoom: 12
+                    });
+
+                    let placemark = new ymaps.Placemark([62.0355, 129.6755], {}, {
+                        draggable: false
+                    });
+
+                    map.geoObjects.add(placemark);
+
+                    map.events.add('click', function(e) {
+                        const coords = e.get('coords');
+                        map.geoObjects.remove(placemark);
+                        placemark = new ymaps.Placemark(coords, {}, {
+                            draggable: false
+                        });
+                        map.geoObjects.add(placemark);
+                        
+                        const storeLatitude = document.getElementById('storeLatitude');
+                        const storeLongitude = document.getElementById('storeLongitude');
+                        if (storeLatitude) storeLatitude.value = coords[0];
+                        if (storeLongitude) storeLongitude.value = coords[1];
+                    });
+                } catch (error) {
+                    console.error('Error initializing store map:', error);
+                }
             });
         }
 
         // Обновляем функцию обновления фильтров категорий
         function updateCategoryFilters(categories) {
             const categoryFilter = document.getElementById('categoryFilter');
-            if (!categoryFilter) return;
+            if (!categoryFilter) {
+                console.warn('Category filter container not found');
+                return;
+            }
 
-            // Фильтруем и сортируем категории
-            const sortedCategories = Object.entries(categories)
-                .filter(([, category]) => category && category.id)
-                .sort(([, a], [, b]) => a.id - b.id);
+            try {
+                // Фильтруем и сортируем категории
+                const sortedCategories = Object.entries(categories)
+                    .filter(([, category]) => category && category.id)
+                    .sort(([, a], [, b]) => a.id - b.id);
 
-            categoryFilter.innerHTML = `
-                <button class="active" data-category="">Все товары</button>
-                ${sortedCategories.map(([firebaseId, category]) => `
-                    <button data-category="${category.id}">${category.name}</button>
-                `).join('')}
-            `;
+                categoryFilter.innerHTML = `
+                    <button class="active" data-category="">Все товары</button>
+                    ${sortedCategories.map(([firebaseId, category]) => `
+                        <button data-category="${category.id}">${category.name}</button>
+                    `).join('')}
+                `;
 
-            // Обновляем обработчик клика
-            categoryFilter.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
-                    // Убираем активный класс у всех кнопок
-                    categoryFilter.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                    // Добавляем активный класс выбранной кнопке
-                    e.target.classList.add('active');
-                    
-                    // Получаем ID категории из data-атрибута
-                    const categoryId = e.target.dataset.category;
-                    console.log('Selected category ID:', categoryId);
-                    
-                    // Обновляем текущую категорию
-                    currentCategory = categoryId;
-                    console.log('Updated currentCategory:', currentCategory);
-                    
-                    // Перезагружаем товары
-                    loadProducts();
-                }
-            });
+                // Обновляем обработчик клика
+                categoryFilter.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON') {
+                        // Убираем активный класс у всех кнопок
+                        categoryFilter.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                        // Добавляем активный класс выбранной кнопке
+                        e.target.classList.add('active');
+                        
+                        // Получаем ID категории из data-атрибута
+                        const categoryId = e.target.dataset.category;
+                        console.log('Selected category ID:', categoryId);
+                        
+                        // Обновляем текущую категорию
+                        currentCategory = categoryId;
+                        console.log('Updated currentCategory:', currentCategory);
+                        
+                        // Перезагружаем товары
+                        loadProducts();
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating category filters:', error);
+            }
         }
 
         // Добавляем функцию для исправления существующих категорий без ID
@@ -2549,6 +2671,7 @@
             loadProducts();
             loadStores();
             initStoreMap();
+            initPullToRefresh(); // Добавляем инициализацию pull-to-refresh
             
             // Добавляем обработчик поиска
             const searchInput = document.getElementById('searchInput');
@@ -2679,33 +2802,6 @@
 
                     // Сбрасываем выбранный магазин, так как пользователь выбрал новое местоположение
                     document.getElementById('popularStore').value = '';
-                });
-            });
-        }
-
-        // Инициализация карты для магазинов
-        function initStoreMap() {
-            ymaps.ready(function() {
-                const map = new ymaps.Map('storeMap', {
-                    center: [62.0355, 129.6755],
-                    zoom: 12
-                });
-
-                let placemark = new ymaps.Placemark([62.0355, 129.6755], {}, {
-                    draggable: false
-                });
-
-                map.geoObjects.add(placemark);
-
-                map.events.add('click', function(e) {
-                    const coords = e.get('coords');
-                    map.geoObjects.remove(placemark);
-                    placemark = new ymaps.Placemark(coords, {}, {
-                        draggable: false
-                    });
-                    map.geoObjects.add(placemark);
-                    document.getElementById('storeLatitude').value = coords[0];
-                    document.getElementById('storeLongitude').value = coords[1];
                 });
             });
         }
@@ -3056,6 +3152,418 @@
             console.log('Is admin:', isAdmin);
             console.log('Admin panel visible:', document.getElementById('adminPanel').style.display);
             console.log('Pending products container exists:', !!document.getElementById('pendingProducts'));
+        }
+
+        // Добавляем обработчик для секретного доступа к админ-панели
+        let adminClickCount = 0;
+        let adminClickTimeout;
+
+        // Функция для создания контента админ-панели
+        function createAdminContent() {
+            const tabContentWrapper = document.querySelector('.tab-content-wrapper');
+            if (!tabContentWrapper) return;
+
+            // Создаем контент админ-панели, если его еще нет
+            if (!document.getElementById('categories')) {
+                const adminContent = document.createElement('div');
+                adminContent.className = 'tab-content';
+                adminContent.id = 'categories';
+                adminContent.innerHTML = `
+                    <div class="admin-header">
+                        <h2>Админ-Панель</h2>
+                    </div>
+                    <div id="adminLoginForm" class="admin-login-form">
+                        <h2>Вход в админ-панель</h2>
+                        <div class="form-group">
+                            <label>Пароль</label>
+                            <input type="password" id="adminPassword">
+                        </div>
+                        <button class="button" onclick="loginAdmin()">Войти</button>
+                    </div>
+                    
+                    <div id="adminPanel" class="admin-panel" style="display: none;">
+                        <div class="admin-section">
+                            <h2>Управление категориями</h2>
+                            <div class="form-group">
+                                <label>Название категории</label>
+                                <input type="text" id="categoryName">
+                            </div>
+                            <button class="button" onclick="addCategory()">Добавить категорию</button>
+                            
+                            <div class="categories-list" id="categoriesList">
+                                <h3>Существующие категории</h3>
+                            </div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h2>Импорт товаров из Excel</h2>
+                            <div class="excel-upload">
+                                <h3>Загрузка товаров из Excel</h3>
+                                <p>Поддерживаемые форматы: .xlsx, .xls</p>
+                                <p>Структура файла должна содержать следующие колонки:</p>
+                                <ul style="color: var(--tg-theme-hint-color); margin-bottom: 15px; padding-left: 20px;">
+                                    <li>name - название товара</li>
+                                    <li>description - описание товара</li>
+                                    <li>price - цена товара</li>
+                                    <li>category - ID категории</li>
+                                    <li>image_url - URL изображения (опционально)</li>
+                                    <li>address - адрес (опционально)</li>
+                                </ul>
+                                <p style="margin-bottom: 15px;">Скачайте шаблон Excel по ссылке:</p>
+                                <a href="https://docs.google.com/spreadsheets/d/1_7_TYc7XMoFQOCFywSxRBmYnjUZ4qCfs/edit?usp=drive_link&ouid=109154224706737583540&rtpof=true&sd=true" 
+                                   target="_blank" 
+                                   style="color: var(--tg-theme-link-color); text-decoration: underline; margin-bottom: 20px; display: inline-block;">
+                                    Шаблон Excel на Google Drive
+                                </a>
+                                <div class="file-input-wrapper">
+                                    <label class="file-input-label">
+                                        Выбрать файл Excel
+                                        <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
+                                    </label>
+                                    <div class="file-name" id="fileName"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h2>Модерация товаров</h2>
+                            <div class="pending-products" id="pendingProducts">
+                            </div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h2>Управление популярными магазинами</h2>
+                            <div class="form-group">
+                                <label>Название магазина</label>
+                                <input type="text" id="storeName">
+                            </div>
+                            <div class="form-group">
+                                <label>Местоположение магазина</label>
+                                <div class="map-container" id="storeMap"></div>
+                                <input type="hidden" id="storeLatitude" value="62.0355">
+                                <input type="hidden" id="storeLongitude" value="129.6755">
+                            </div>
+                            <button class="button" onclick="addStore()">Добавить магазин</button>
+                            <div class="stores-list" id="storesList"></div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h2>Модерация отзывов</h2>
+                            <div class="pending-reviews" id="pendingReviews">
+                                <!-- Отзывы на модерацию будут добавлены здесь -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+                tabContentWrapper.appendChild(adminContent);
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            // Получаем элемент версии
+            const versionElement = document.querySelector('.version');
+            if (!versionElement) return;
+
+            // Получаем координаты и размеры элемента версии
+            const rect = versionElement.getBoundingClientRect();
+            
+            // Расширяем область клика на 20 пикселей вокруг версии
+            const clickArea = {
+                left: rect.left - 20,
+                right: rect.right + 20,
+                top: rect.top - 20,
+                bottom: rect.bottom + 20
+            };
+
+            // Проверяем, что клик был в области версии или вокруг неё
+            if (e.clientX >= clickArea.left && 
+                e.clientX <= clickArea.right && 
+                e.clientY >= clickArea.top && 
+                e.clientY <= clickArea.bottom) {
+                
+                adminClickCount++;
+                
+                // Добавляем визуальный эффект при клике
+                versionElement.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    versionElement.style.transform = 'scale(1)';
+                }, 100);
+                
+                // Сбрасываем таймер при каждом клике
+                clearTimeout(adminClickTimeout);
+                
+                // Устанавливаем таймер на сброс счетчика
+                adminClickTimeout = setTimeout(() => {
+                    adminClickCount = 0;
+                }, 2000);
+                
+                // Если было 5 кликов подряд
+                if (adminClickCount >= 5) {
+                    adminClickCount = 0;
+                    
+                    // Проверяем, существует ли уже вкладка управления
+                    let adminTab = document.querySelector('.tab[data-tab="categories"]');
+                    
+                    if (adminTab) {
+                        // Если вкладка уже существует, скрываем её
+                        adminTab.remove();
+                        // Переключаемся на вкладку товаров
+                        const productsTab = document.querySelector('.tab[data-tab="products"]');
+                        if (productsTab) {
+                            productsTab.click();
+                        }
+                    } else {
+                        // Создаем контент админ-панели
+                        createAdminContent();
+                        
+                        // Создаем вкладку управления
+                        adminTab = document.createElement('div');
+                        adminTab.className = 'tab';
+                        adminTab.dataset.tab = 'categories';
+                        adminTab.textContent = 'Управление';
+                        
+                        // Добавляем вкладку в конец списка
+                        const tabsContainer = document.querySelector('.tabs');
+                        if (tabsContainer) {
+                            tabsContainer.appendChild(adminTab);
+                            
+                            // Добавляем обработчик клика
+                            adminTab.addEventListener('click', () => {
+                                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                                
+                                adminTab.classList.add('active');
+                                const categoriesContent = document.getElementById('categories');
+                                if (categoriesContent) {
+                                    categoriesContent.classList.add('active');
+                                }
+                                
+                                if (isAdmin) {
+                                    loadPendingProducts();
+                                    checkModerationStatus();
+                                }
+                            });
+                            
+                            // Показываем форму входа в админ-панель
+                            const adminLoginForm = document.getElementById('adminLoginForm');
+                            const adminPanel = document.getElementById('adminPanel');
+                            if (adminLoginForm) adminLoginForm.style.display = 'block';
+                            if (adminPanel) adminPanel.style.display = 'none';
+                            
+                            // Активируем вкладку управления
+                            adminTab.click();
+                        }
+                    }
+                }
+            }
+        });
+
+        // Добавляем после инициализации Telegram WebApp
+        let pullStartY = 0;
+        let pullMoveY = 0;
+        let isPulling = false;
+        let isRefreshing = false;
+        let pullThreshold = 60;
+
+        function initPullToRefresh() {
+            const productsSection = document.querySelector('.products-section');
+            if (!productsSection) return;
+
+            // Создаем элемент pull-to-refresh
+            const pullToRefresh = document.createElement('div');
+            pullToRefresh.className = 'pull-to-refresh';
+            pullToRefresh.innerHTML = `
+                <div class="spinner"></div>
+                <span class="text">Потяните для обновления</span>
+                <div class="progress"></div>
+            `;
+            productsSection.insertBefore(pullToRefresh, productsSection.firstChild);
+
+            // Обработчики событий для pull-to-refresh
+            productsSection.addEventListener('touchstart', handleTouchStart, { passive: true });
+            productsSection.addEventListener('touchmove', handleTouchMove, { passive: false });
+            productsSection.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
+
+        function handleTouchStart(e) {
+            if (isRefreshing) return;
+            
+            const productsSection = document.querySelector('.products-section');
+            if (!productsSection) return;
+
+            // Проверяем, что мы в начале списка
+            if (productsSection.scrollTop === 0) {
+                pullStartY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!isPulling || isRefreshing) return;
+
+            pullMoveY = e.touches[0].clientY - pullStartY;
+            
+            // Если потянули вниз
+            if (pullMoveY > 0) {
+                const pullToRefresh = document.querySelector('.pull-to-refresh');
+                if (pullToRefresh) {
+                    // Предотвращаем прокрутку только если мы действительно тянем вниз
+                    if (pullMoveY > 10) {
+                        e.preventDefault();
+                    }
+
+                    // Добавляем класс pulling и обновляем трансформацию
+                    pullToRefresh.classList.add('pulling');
+                    
+                    // Ограничиваем максимальное растяжение
+                    const maxPull = pullThreshold * 1.5;
+                    const pullDistance = Math.min(pullMoveY, maxPull);
+                    pullToRefresh.style.transform = `translateY(${pullDistance}px)`;
+
+                    // Обновляем прогресс-бар
+                    const progress = pullToRefresh.querySelector('.progress');
+                    if (progress) {
+                        const progressPercent = (pullDistance / pullThreshold) * 100;
+                        progress.style.width = `${Math.min(progressPercent, 100)}%`;
+                    }
+
+                    // Обновляем текст в зависимости от расстояния
+                    const text = pullToRefresh.querySelector('.text');
+                    if (text) {
+                        if (pullDistance >= pullThreshold) {
+                            text.textContent = 'Отпустите для обновления';
+                        } else {
+                            text.textContent = 'Потяните для обновления';
+                        }
+                    }
+                }
+            }
+        }
+
+        function handleTouchEnd() {
+            if (!isPulling || isRefreshing) return;
+
+            const pullToRefresh = document.querySelector('.pull-to-refresh');
+            if (!pullToRefresh) return;
+
+            if (pullMoveY >= pullThreshold) {
+                // Запускаем обновление
+                isRefreshing = true;
+                pullToRefresh.classList.add('refreshing');
+                
+                // Анимируем возврат в исходное положение
+                pullToRefresh.style.transform = 'translateY(60px)';
+                
+                // Обновляем данные
+                Promise.all([
+                    loadCategories(),
+                    loadProducts()
+                ]).then(() => {
+                    // Показываем уведомление об успешном обновлении
+                    tg.showPopup({
+                        title: 'Успех',
+                        message: 'Список товаров обновлен',
+                        buttons: [{type: 'ok'}]
+                    });
+                }).catch(error => {
+                    console.error('Error refreshing data:', error);
+                    tg.showPopup({
+                        title: 'Ошибка',
+                        message: 'Не удалось обновить список товаров',
+                        buttons: [{type: 'ok'}]
+                    });
+                }).finally(() => {
+                    // Сбрасываем состояние с анимацией
+                    setTimeout(() => {
+                        isRefreshing = false;
+                        pullToRefresh.classList.remove('refreshing', 'pulling');
+                        pullToRefresh.style.transform = '';
+                        const text = pullToRefresh.querySelector('.text');
+                        if (text) text.textContent = 'Потяните для обновления';
+                        const progress = pullToRefresh.querySelector('.progress');
+                        if (progress) progress.style.width = '0';
+                        pullMoveY = 0;
+                    }, 500);
+                });
+            } else {
+                // Если не дотянули до порога, возвращаем в исходное положение с анимацией
+                pullToRefresh.classList.remove('pulling');
+                pullToRefresh.style.transform = '';
+                const progress = pullToRefresh.querySelector('.progress');
+                if (progress) progress.style.width = '0';
+            }
+
+            isPulling = false;
+        }
+
+        // Функция загрузки отзывов на модерацию
+        function loadPendingReviews() {
+            if (!isAdmin) return;
+
+            const productsRef = database.ref('products');
+            productsRef.on('value', (snapshot) => {
+                const products = snapshot.val() || {};
+                const pendingReviewsContainer = document.getElementById('pendingReviews');
+                pendingReviewsContainer.innerHTML = '';
+
+                let hasPendingReviews = false;
+
+                Object.entries(products).forEach(([productId, product]) => {
+                    if (product.reviews) {
+                        Object.entries(product.reviews).forEach(([reviewId, review]) => {
+                            if (review.status === 'pending') {
+                                hasPendingReviews = true;
+                                const reviewCard = document.createElement('div');
+                                reviewCard.className = 'review-card';
+                                reviewCard.innerHTML = `
+                                    <div class="product-info">
+                                        <h4>Товар: ${product.name || 'Без названия'}</h4>
+                                    </div>
+                                    <div class="review-content">${review.text}</div>
+                                    <div class="review-meta">
+                                        Автор: ${review.user_name} ${review.user_username ? `(@${review.user_username})` : ''}<br>
+                                        Дата: ${new Date(review.created_at).toLocaleString('ru-RU')}
+                                    </div>
+                                    <div class="review-actions">
+                                        <button class="approve-button" onclick="moderateReview('${productId}', '${reviewId}', 'approved')">Одобрить</button>
+                                        <button class="reject-button" onclick="moderateReview('${productId}', '${reviewId}', 'rejected')">Отклонить</button>
+                                    </div>
+                                `;
+                                pendingReviewsContainer.appendChild(reviewCard);
+                            }
+                        });
+                    }
+                });
+
+                if (!hasPendingReviews) {
+                    pendingReviewsContainer.innerHTML = '<div class="no-pending-products">Нет отзывов на модерацию</div>';
+                }
+            });
+        }
+
+        // Функция модерации отзыва
+        function moderateReview(productId, reviewId, status) {
+            if (!isAdmin) return;
+
+            database.ref(`products/${productId}/reviews/${reviewId}`).update({
+                status: status
+            }).then(() => {
+                tg.showPopup({
+                    title: 'Успех',
+                    message: status === 'approved' ? 'Отзыв одобрен' : 'Отзыв отклонен',
+                    buttons: [{type: 'ok'}]
+                });
+                loadPendingReviews(); // Обновляем список отзывов на модерацию
+                if (currentProductId === productId) {
+                    loadReviews(productId); // Обновляем отзывы в деталях товара
+                }
+            }).catch((error) => {
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Не удалось изменить статус отзыва: ' + error.message,
+                    buttons: [{type: 'ok'}]
+                });
+            });
         }
     </script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=b4baee95-a360-4970-8bbf-a5cefaf3e093&lang=ru_RU"></script>
