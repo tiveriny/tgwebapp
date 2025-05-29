@@ -1970,7 +1970,7 @@
             // Создаем структуру для деталей товара
             detailsView.innerHTML = `
                 <div class="product-details-header">
-                    <button class="back-button" onclick="hideProductDetails()">← Назад</button>
+                    <button class="back-button" onclick="hideProductDetails()">Назад</button>
                     <button class="share-button" onclick="shareProduct()">Поделиться</button>
                 </div>
                 <div class="product-details">
@@ -3851,12 +3851,8 @@
                         message: shareText,
                         buttons: [
                             {
-                                type: 'copy',
-                                text: 'Копировать ссылку'
-                            },
-                            {
-                                type: 'cancel',
-                                text: 'Отмена'
+                                type: 'ok',
+                                text: 'OK'
                             }
                         ]
                     });
