@@ -3843,7 +3843,7 @@
                     if (!product) return;
 
                     // Создаем текст для шаринга
-                    const shareText = `${product.name}\n\n${product.description}\n\nЦена: ${product.price} ₽\n\nПосмотреть товар: ${window.location.origin}${window.location.pathname}?product=${currentProductId}`;
+                    const shareText = `${product.name}\n\n${product.description}\n\nЦена: ${product.price} ₽`;
 
                     // Используем Telegram Web App API для шаринга
                     window.Telegram.WebApp.showPopup({
@@ -3851,8 +3851,12 @@
                         message: shareText,
                         buttons: [
                             {
-                                type: 'ok',
-                                text: 'OK'
+                                type: 'share',
+                                text: 'Поделиться'
+                            },
+                            {
+                                type: 'cancel',
+                                text: 'Отмена'
                             }
                         ]
                     });
