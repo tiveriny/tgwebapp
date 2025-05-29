@@ -1388,27 +1388,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .share-button {
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            margin-top: 15px;
-        }
-
-        .share-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(36, 129, 204, 0.2);
-        }
-
-        .share-button:active {
-            transform: translateY(1px);
-        }
-
         .product-details-header {
             display: flex;
             justify-content: space-between;
@@ -1539,7 +1518,6 @@
         <div class="product-details-view" id="productDetailsView">
             <div class="product-details-header">
                 <button class="back-button" onclick="hideProductDetails()">Назад</button>
-                <button class="share-button" onclick="shareProduct()">Поделиться</button>
             </div>
             <div class="product-details">
                 <img id="detailsImage" src="" alt="Фото товара">
@@ -1971,7 +1949,6 @@
             detailsView.innerHTML = `
                 <div class="product-details-header">
                     <button class="back-button" onclick="hideProductDetails()">Назад</button>
-                    <button class="share-button" onclick="shareProduct()">Поделиться</button>
                 </div>
                 <div class="product-details">
                     <img id="detailsImage" src="" alt="Фото товара">
