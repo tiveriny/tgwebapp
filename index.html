@@ -1387,6 +1387,34 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
+        .share-button {
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            margin-top: 15px;
+        }
+
+        .share-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(36, 129, 204, 0.2);
+        }
+
+        .share-button:active {
+            transform: translateY(1px);
+        }
+
+        .product-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -1509,7 +1537,10 @@
         </div>
 
         <div class="product-details-view" id="productDetailsView">
-            <button class="back-button" onclick="hideProductDetails()">Назад</button>
+            <div class="product-details-header">
+                <button class="back-button" onclick="hideProductDetails()">Назад</button>
+                <button class="share-button" onclick="shareProduct()">Поделиться</button>
+            </div>
             <div class="product-details">
                 <img id="detailsImage" src="" alt="Фото товара">
                 <h2 id="detailsName"></h2>
@@ -1938,7 +1969,10 @@
 
             // Создаем структуру для деталей товара
             detailsView.innerHTML = `
-                <button class="back-button" onclick="hideProductDetails()">Назад</button>
+                <div class="product-details-header">
+                    <button class="back-button" onclick="hideProductDetails()">← Назад</button>
+                    <button class="share-button" onclick="shareProduct()">Поделиться</button>
+                </div>
                 <div class="product-details">
                     <img id="detailsImage" src="" alt="Фото товара">
                     <h2 id="detailsName"></h2>
@@ -3797,6 +3831,77 @@
                 window.productPlacemark = null;
             }
         }
+
+        // Функция шаринга товара
+        function shareProduct() {
+            if (!currentProductId) return;
+            
+            // Получаем данные о товаре
+            database.ref(`products/${currentProductId}`).once('value')
+                .then((snapshot) => {
+                    const product = snapshot.val();
+                    if (!product) return;
+
+                    // Создаем текст для шаринга
+                    const shareText = `${product.name}\n\n${product.description}\n\nЦена: ${product.price} ₽\n\nПосмотреть товар: ${window.location.origin}${window.location.pathname}?product=${currentProductId}`;
+
+                    // Используем Telegram Web App API для шаринга
+                    if (window.Telegram.WebApp.isVersionAtLeast('6.0')) {
+                        window.Telegram.WebApp.showPopup({
+                            title: 'Поделиться товаром',
+                            message: 'Выберите способ поделиться товаром',
+                            buttons: [
+                                {
+                                    type: 'share',
+                                    text: 'Поделиться',
+                                    share_text: shareText
+                                },
+                                {
+                                    type: 'cancel',
+                                    text: 'Отмена'
+                                }
+                            ]
+                        });
+                    } else {
+                        // Для старых версий Telegram
+                        window.Telegram.WebApp.showPopup({
+                            title: 'Поделиться товаром',
+                            message: shareText,
+                            buttons: [
+                                {
+                                    type: 'copy',
+                                    text: 'Копировать ссылку'
+                                },
+                                {
+                                    type: 'cancel',
+                                    text: 'Отмена'
+                                }
+                            ]
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error sharing product:', error);
+                    tg.showPopup({
+                        title: 'Ошибка',
+                        message: 'Не удалось поделиться товаром',
+                        buttons: [{type: 'ok'}]
+                    });
+                });
+        }
+
+        // Обработка открытия товара по ссылке
+        function handleProductLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('product');
+            
+            if (productId) {
+                showProductDetails(productId);
+            }
+        }
+
+        // Вызываем обработку ссылки при загрузке страницы
+        document.addEventListener('DOMContentLoaded', handleProductLink);
     </script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=b4baee95-a360-4970-8bbf-a5cefaf3e093&lang=ru_RU"></script>
 </body>
