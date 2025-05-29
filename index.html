@@ -3846,39 +3846,20 @@
                     const shareText = `${product.name}\n\n${product.description}\n\nЦена: ${product.price} ₽\n\nПосмотреть товар: ${window.location.origin}${window.location.pathname}?product=${currentProductId}`;
 
                     // Используем Telegram Web App API для шаринга
-                    if (window.Telegram.WebApp.isVersionAtLeast('6.0')) {
-                        window.Telegram.WebApp.showPopup({
-                            title: 'Поделиться товаром',
-                            message: 'Выберите способ поделиться товаром',
-                            buttons: [
-                                {
-                                    type: 'share',
-                                    text: 'Поделиться',
-                                    share_text: shareText
-                                },
-                                {
-                                    type: 'cancel',
-                                    text: 'Отмена'
-                                }
-                            ]
-                        });
-                    } else {
-                        // Для старых версий Telegram
-                        window.Telegram.WebApp.showPopup({
-                            title: 'Поделиться товаром',
-                            message: shareText,
-                            buttons: [
-                                {
-                                    type: 'copy',
-                                    text: 'Копировать ссылку'
-                                },
-                                {
-                                    type: 'cancel',
-                                    text: 'Отмена'
-                                }
-                            ]
-                        });
-                    }
+                    window.Telegram.WebApp.showPopup({
+                        title: 'Поделиться товаром',
+                        message: shareText,
+                        buttons: [
+                            {
+                                type: 'copy',
+                                text: 'Копировать ссылку'
+                            },
+                            {
+                                type: 'cancel',
+                                text: 'Отмена'
+                            }
+                        ]
+                    });
                 })
                 .catch((error) => {
                     console.error('Error sharing product:', error);
